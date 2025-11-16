@@ -18,7 +18,7 @@ function Shops({ gameState, availableShops, updateGameState, showNotification, o
       setShopInventories(inventories);
       setSelectedShop(availableShops[0].id);
     }
-  }, []);
+  }, [availableShops]);
 
   // Trigger market update when changing shops
   const handleShopChange = (shopId) => {

@@ -154,19 +154,21 @@ function Collection({ gameState, availableShops }) {
               {/* Market Prices */}
               <div className="market-prices">
                 <h4>Current Market Prices</h4>
-                {availableShops.map(shop => {
-                  const prices = getCardPricesAllShops(selectedCard, availableShops, gameState.activeEvents);
-                  const shopPrice = prices[shop.id];
+                {(() => {
+                  const allPrices = getCardPricesAllShops(selectedCard, availableShops, gameState.activeEvents);
+                  return availableShops.map(shop => {
+                    const shopPrice = allPrices[shop.id];
 
-                  if (!shopPrice || shopPrice.buyPrice === 0) return null;
+                    if (!shopPrice || shopPrice.buyPrice === 0) return null;
 
-                  return (
-                    <div key={shop.id} className="price-row">
-                      <span className="shop-name">{shop.icon} {shop.name}</span>
-                      <span className="price">${shopPrice.buyPrice.toLocaleString()}</span>
-                    </div>
-                  );
-                })}
+                    return (
+                      <div key={shop.id} className="price-row">
+                        <span className="shop-name">{shop.icon} {shop.name}</span>
+                        <span className="price">${shopPrice.buyPrice.toLocaleString()}</span>
+                      </div>
+                    );
+                  });
+                })()}
               </div>
             </div>
           </div>

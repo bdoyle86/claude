@@ -174,24 +174,27 @@ export const checkQuestCompletion = (quest, gameState) => {
     case QUEST_TYPES.OPEN_PACKS:
       return gameState.packsOpened >= quest.target;
 
-    case QUEST_TYPES.COLLECT_RARITY:
+    case QUEST_TYPES.COLLECT_RARITY: {
       const rarityCount = gameState.cards.filter(
         card => card.rarity === quest.targetRarity
       ).length;
       return rarityCount >= quest.target;
+    }
 
-    case QUEST_TYPES.COLLECT_POSITION:
+    case QUEST_TYPES.COLLECT_POSITION: {
       const positionCount = gameState.cards.filter(
         card => card.position === quest.targetPosition
       ).length;
       return positionCount >= quest.target;
+    }
 
-    case QUEST_TYPES.REACH_VALUE:
+    case QUEST_TYPES.REACH_VALUE: {
       const collectionValue = gameState.cards.reduce(
         (sum, card) => sum + card.baseValue,
         0
       );
       return collectionValue >= quest.target;
+    }
 
     default:
       return false;
@@ -213,24 +216,27 @@ export const getQuestProgress = (quest, gameState) => {
     case QUEST_TYPES.OPEN_PACKS:
       return { current: gameState.packsOpened, target: quest.target };
 
-    case QUEST_TYPES.COLLECT_RARITY:
+    case QUEST_TYPES.COLLECT_RARITY: {
       const rarityCount = gameState.cards.filter(
         card => card.rarity === quest.targetRarity
       ).length;
       return { current: rarityCount, target: quest.target };
+    }
 
-    case QUEST_TYPES.COLLECT_POSITION:
+    case QUEST_TYPES.COLLECT_POSITION: {
       const positionCount = gameState.cards.filter(
         card => card.position === quest.targetPosition
       ).length;
       return { current: positionCount, target: quest.target };
+    }
 
-    case QUEST_TYPES.REACH_VALUE:
+    case QUEST_TYPES.REACH_VALUE: {
       const collectionValue = gameState.cards.reduce(
         (sum, card) => sum + card.baseValue,
         0
       );
       return { current: collectionValue, target: quest.target };
+    }
 
     default:
       return { current: 0, target: quest.target };

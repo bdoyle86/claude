@@ -14,7 +14,7 @@ export const EVENT_TYPES = {
 const EVENT_TEMPLATES = [
   {
     type: EVENT_TYPES.PLAYER_HATTRICK,
-    generateEvent: (clubs, nations, positions) => {
+    generateEvent: (clubs) => {
       const club = clubs[Math.floor(Math.random() * clubs.length)];
       return {
         type: EVENT_TYPES.PLAYER_HATTRICK,
@@ -30,7 +30,7 @@ const EVENT_TEMPLATES = [
 
   {
     type: EVENT_TYPES.TEAM_WIN,
-    generateEvent: (clubs, nations, positions) => {
+    generateEvent: (clubs) => {
       const club = clubs[Math.floor(Math.random() * clubs.length)];
       return {
         type: EVENT_TYPES.TEAM_WIN,
@@ -46,7 +46,7 @@ const EVENT_TEMPLATES = [
 
   {
     type: EVENT_TYPES.POSITION_DEMAND,
-    generateEvent: (clubs, nations, positions) => {
+    generateEvent: (_clubs, _nations, positions) => {
       const position = positions[Math.floor(Math.random() * positions.length)];
       const positionNames = { GK: 'Goalkeepers', DEF: 'Defenders', MID: 'Midfielders', ST: 'Strikers' };
       return {
@@ -63,7 +63,7 @@ const EVENT_TEMPLATES = [
 
   {
     type: EVENT_TYPES.NATION_HYPE,
-    generateEvent: (clubs, nations, positions) => {
+    generateEvent: (_clubs, nations) => {
       const nation = nations[Math.floor(Math.random() * nations.length)];
       return {
         type: EVENT_TYPES.NATION_HYPE,
@@ -79,7 +79,7 @@ const EVENT_TEMPLATES = [
 
   {
     type: EVENT_TYPES.SUPPLY_FLOOD,
-    generateEvent: (clubs, nations, positions) => {
+    generateEvent: (clubs) => {
       const club = clubs[Math.floor(Math.random() * clubs.length)];
       return {
         type: EVENT_TYPES.SUPPLY_FLOOD,
@@ -95,7 +95,7 @@ const EVENT_TEMPLATES = [
 
   {
     type: EVENT_TYPES.COLLECTOR_QUEST,
-    generateEvent: (clubs, nations, positions) => {
+    generateEvent: (_clubs, nations) => {
       const nation = nations[Math.floor(Math.random() * nations.length)];
       return {
         type: EVENT_TYPES.COLLECTOR_QUEST,
@@ -111,7 +111,7 @@ const EVENT_TEMPLATES = [
 
   {
     type: EVENT_TYPES.RATING_BOOST,
-    generateEvent: (clubs, nations, positions) => {
+    generateEvent: () => {
       const threshold = 80 + Math.floor(Math.random() * 10);
       return {
         type: EVENT_TYPES.RATING_BOOST,
@@ -127,12 +127,12 @@ const EVENT_TEMPLATES = [
 
   {
     type: EVENT_TYPES.MARKET_CRASH,
-    generateEvent: (clubs, nations, positions) => {
+    generateEvent: () => {
       return {
         type: EVENT_TYPES.MARKET_CRASH,
         title: '💥 Market Crash!',
         description: 'Economic crisis! All card prices have dropped significantly!',
-        filter: (card) => true, // affects all cards
+        filter: () => true, // affects all cards
         priceMultiplier: 0.70,
         duration: 2,
         icon: '⚠️'
