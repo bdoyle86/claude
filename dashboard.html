@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Band Manager - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f425af",
+                        "background-light": "#f8f5f7",
+                        "background-dark": "#22101c",
+                    },
+                    fontFamily: {
+                        "display": ["Spline Sans", "sans-serif"]
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24
+        }
+        .unread-dot {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-gray-200">
+    <div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+        <div class="layout-container flex h-full grow">
+            <div class="flex flex-1 justify-center p-4 sm:p-6 md:p-8">
+                <div class="layout-content-container grid w-full max-w-7xl grid-cols-1 gap-6 md:grid-cols-[240px_1fr] lg:grid-cols-[240px_1fr_280px]">
+
+                    <!-- Left Sidebar - Navigation -->
+                    <aside class="flex flex-col justify-between rounded-xl bg-white/5 p-4">
+                        <div class="flex flex-col gap-6">
+                            <div class="flex items-center gap-3 px-2">
+                                <div class="bg-primary flex items-center justify-center rounded-full w-10 h-10">
+                                    <span class="material-symbols-outlined text-white">groups</span>
+                                </div>
+                                <div class="flex flex-col">
+                                    <h1 id="bandNameSidebar" class="text-white text-base font-bold leading-normal">Loading...</h1>
+                                    <p class="text-gray-400 text-sm font-normal leading-normal">Manager</p>
+                                </div>
+                            </div>
+                            <nav class="flex flex-col gap-2">
+                                <a class="flex items-center gap-3 rounded-lg bg-primary/20 px-3 py-2 text-primary" href="dashboard.html">
+                                    <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">home</span>
+                                    <p class="text-sm font-semibold leading-normal">Dashboard</p>
+                                </a>
+                                <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-400 hover:bg-white/10 hover:text-white" href="band-members.html">
+                                    <span class="material-symbols-outlined">groups</span>
+                                    <p class="text-sm font-medium leading-normal">Band</p>
+                                </a>
+                                <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-400 hover:bg-white/10 hover:text-white" href="record-album.html">
+                                    <span class="material-symbols-outlined">album</span>
+                                    <p class="text-sm font-medium leading-normal">Studio</p>
+                                </a>
+                                <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-400 hover:bg-white/10 hover:text-white" href="tour.html">
+                                    <span class="material-symbols-outlined">music_note</span>
+                                    <p class="text-sm font-medium leading-normal">Tour</p>
+                                </a>
+                                <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-400 hover:bg-white/10 hover:text-white" href="history.html">
+                                    <span class="material-symbols-outlined">history</span>
+                                    <p class="text-sm font-medium leading-normal">History</p>
+                                </a>
+                                <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-400 hover:bg-white/10 hover:text-white" href="biography.html">
+                                    <span class="material-symbols-outlined">menu_book</span>
+                                    <p class="text-sm font-medium leading-normal">Biography</p>
+                                </a>
+                                <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-400 hover:bg-white/10 hover:text-white" href="hall-of-fame.html">
+                                    <span class="material-symbols-outlined">emoji_events</span>
+                                    <p class="text-sm font-medium leading-normal">Hall of Fame</p>
+                                </a>
+                            </nav>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <button id="logoutBtn" class="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-400 hover:bg-white/10 hover:text-white">
+                                <span class="material-symbols-outlined">logout</span>
+                                <p class="text-sm font-medium leading-normal">Logout</p>
+                            </button>
+                        </div>
+                    </aside>
+
+                    <!-- Center Panel - Inbox -->
+                    <main class="flex flex-col gap-4 rounded-xl bg-white/5 p-4 sm:p-6">
+                        <header>
+                            <h2 class="text-white text-2xl font-bold leading-tight tracking-tight">Manager's Inbox</h2>
+                        </header>
+                        <div id="inboxContainer" class="flex flex-col divide-y divide-white/10">
+                            <!-- Messages will be loaded here -->
+                            <div class="py-8 text-center text-gray-400">
+                                <span class="material-symbols-outlined text-4xl mb-2">mail</span>
+                                <p>Loading messages...</p>
+                            </div>
+                        </div>
+                    </main>
+
+                    <!-- Right Sidebar - Stats & End Turn -->
+                    <aside class="flex flex-col justify-between gap-6 rounded-xl bg-white/5 p-4 sm:p-6">
+                        <div class="flex flex-col gap-4">
+                            <div class="flex justify-between items-center bg-white/5 p-3 rounded-lg">
+                                <p class="text-sm font-medium text-gray-400">Turn</p>
+                                <p id="currentTurn" class="text-sm font-semibold text-white">1</p>
+                            </div>
+                            <div class="flex flex-col gap-4">
+                                <div class="flex flex-col gap-2 rounded-lg bg-white/5 p-4">
+                                    <div class="flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-primary text-lg">paid</span>
+                                        <h3 class="text-sm font-semibold text-gray-300">Money</h3>
+                                    </div>
+                                    <p id="moneyDisplay" class="text-2xl font-bold text-white">$0</p>
+                                    <div class="h-1 w-full rounded-full bg-black/20">
+                                        <div id="moneyBar" class="h-1 rounded-full bg-primary" style="width: 60%;"></div>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col gap-2 rounded-lg bg-white/5 p-4">
+                                    <div class="flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-primary text-lg">star</span>
+                                        <h3 class="text-sm font-semibold text-gray-300">Fame Score</h3>
+                                    </div>
+                                    <p id="fameDisplay" class="text-2xl font-bold text-white">0</p>
+                                    <div class="h-1 w-full rounded-full bg-black/20">
+                                        <div id="fameBar" class="h-1 rounded-full bg-primary" style="width: 0%;"></div>
+                                    </div>
+                                    <p class="text-xs text-gray-400">Goal: 1,000</p>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="flex flex-col items-center justify-center gap-2 rounded-lg bg-white/5 p-4">
+                                        <span class="material-symbols-outlined text-primary text-2xl">album</span>
+                                        <p id="albumCount" class="text-xl font-bold text-white">0</p>
+                                        <p class="text-xs text-gray-400">Albums</p>
+                                    </div>
+                                    <div class="flex flex-col items-center justify-center gap-2 rounded-lg bg-white/5 p-4">
+                                        <span class="material-symbols-outlined text-primary text-2xl">tour</span>
+                                        <p id="tourCount" class="text-xl font-bold text-white">0</p>
+                                        <p class="text-xs text-gray-400">Tours</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button id="endTurnBtn" class="w-full rounded-lg bg-primary py-3 text-base font-bold text-white shadow-lg shadow-primary/30 transition-transform hover:scale-105">
+                            END TURN
+                        </button>
+                    </aside>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Modal -->
+    <div id="messageModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-background-dark rounded-xl border border-white/10 p-6 max-w-lg w-full shadow-2xl">
+            <div class="flex justify-between items-start mb-4">
+                <h3 id="modalSubject" class="text-xl font-bold text-white"></h3>
+                <button id="closeModalBtn" class="text-gray-400 hover:text-white">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div id="modalBody" class="text-gray-300 whitespace-pre-wrap"></div>
+            <button id="modalOkBtn" class="mt-6 w-full py-2 px-4 bg-primary hover:bg-primary/90 rounded-lg font-semibold text-white">
+                Got it!
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center">
+        <div class="text-center">
+            <div class="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p class="text-white text-lg font-semibold">Processing turn...</p>
+        </div>
+    </div>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Game Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/supabase-client.js"></script>
+    <script src="js/game-master.js"></script>
+    <script src="js/game-manager.js"></script>
+    <script src="js/modals.js"></script>
+
+    <!-- Page Script -->
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

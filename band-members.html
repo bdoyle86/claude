@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Band Manager - Manage Band</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400;500;700;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f425af",
+                        "background-light": "#f8f5f7",
+                        "background-dark": "#181116",
+                        "surface-dark": "#271b23",
+                        "border-dark": "#392833",
+                    },
+                    fontFamily: {
+                        "display": ["Spline Sans", "sans-serif"]
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-white">
+    <div class="relative flex h-auto min-h-screen w-full flex-col">
+        <div class="layout-container flex h-full grow flex-col">
+            <!-- Top Nav Bar -->
+            <header class="flex items-center justify-between whitespace-nowrap border-b border-solid dark:border-border-dark px-10 py-3">
+                <div class="flex items-center gap-4 text-white">
+                    <div class="size-6 text-primary">
+                        <span class="material-symbols-outlined !text-3xl">music_note</span>
+                    </div>
+                    <h2 class="text-white text-lg font-bold leading-tight tracking-[-0.015em]">Band Manager</h2>
+                </div>
+                <div class="flex flex-1 justify-end gap-8">
+                    <div class="hidden sm:flex items-center gap-9">
+                        <a class="text-white/80 hover:text-white text-sm font-medium leading-normal" href="dashboard.html">Dashboard</a>
+                        <a class="text-white text-sm font-bold leading-normal" href="band-members.html">Band</a>
+                        <a class="text-white/80 hover:text-white text-sm font-medium leading-normal" href="record-album.html">Studio</a>
+                        <a class="text-white/80 hover:text-white text-sm font-medium leading-normal" href="tour.html">Tour</a>
+                    </div>
+                    <div class="flex gap-2">
+                        <div class="flex min-w-[84px] max-w-[480px] items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]">
+                            <span id="fameHeader">Fame: 0</span>
+                        </div>
+                        <div class="flex min-w-[84px] max-w-[480px] items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-surface-dark text-white text-sm font-bold leading-normal tracking-[0.015em]">
+                            <span id="moneyHeader">Money: $0</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <main class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <!-- Page Heading -->
+                <div class="flex flex-wrap justify-between gap-3 p-4">
+                    <p class="text-white text-4xl font-black leading-tight tracking-[-0.033em] min-w-72">Manage Your Band</p>
+                </div>
+
+                <!-- Main Content Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-4">
+                    <!-- Left Column: Current Roster -->
+                    <div class="flex flex-col gap-4">
+                        <h2 class="text-white text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Current Roster</h2>
+                        <div id="rosterContainer" class="space-y-4 px-4 @container">
+                            <div class="text-center py-8 text-gray-400">
+                                <span class="material-symbols-outlined text-4xl mb-2">person_off</span>
+                                <p>Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Recruit New Members -->
+                    <div class="flex flex-col gap-4">
+                        <h2 class="text-white text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Recruit New Members</h2>
+                        <div id="recruitsContainer" class="space-y-4 px-4 @container">
+                            <div class="text-center py-8 text-gray-400">
+                                <span class="material-symbols-outlined text-4xl mb-2">person_add</span>
+                                <p>Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Game Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/supabase-client.js"></script>
+    <script src="js/game-master.js"></script>
+    <script src="js/game-manager.js"></script>
+
+    <!-- Page Script -->
+    <script src="js/band-members.js"></script>
+</body>
+</html>

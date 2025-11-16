@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Band Manager - Biography</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400;500;700;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f425af",
+                        "background-light": "#f8f5f7",
+                        "background-dark": "#22101c",
+                    },
+                    fontFamily: {
+                        "display": ["Spline Sans", "sans-serif"]
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24
+        }
+    </style>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark text-white">
+    <div class="relative flex h-auto min-h-screen w-full flex-col">
+        <header class="sticky top-0 z-10 w-full border-b border-white/10 bg-background-dark/80 backdrop-blur-md">
+            <div class="container mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
+                <a href="dashboard.html" class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary text-2xl">music_note</span>
+                    <span class="font-bold text-white text-lg">Band Manager</span>
+                </a>
+            </div>
+        </header>
+
+        <main class="flex flex-1 justify-center py-10 sm:py-16">
+            <div class="container flex max-w-4xl flex-col gap-8 px-4">
+                <!-- Header -->
+                <div class="text-center">
+                    <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/20 mb-6">
+                        <span class="material-symbols-outlined text-5xl text-primary">menu_book</span>
+                    </div>
+                    <h1 id="biographyTitle" class="text-4xl sm:text-5xl font-black text-white mb-4">Loading...</h1>
+                    <p class="text-lg text-gray-400">The Story So Far</p>
+                </div>
+
+                <!-- Biography Content -->
+                <div class="flex flex-col gap-6 rounded-xl bg-white/5 p-6 sm:p-8 border border-white/10">
+                    <div id="biographyText" class="text-gray-300 text-lg leading-relaxed space-y-4">
+                        <p>Loading your band's story...</p>
+                    </div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="rounded-xl bg-white/5 p-6 text-center border border-white/10">
+                        <span class="material-symbols-outlined text-primary text-3xl mb-2 block">groups</span>
+                        <p id="memberCount" class="text-3xl font-bold text-white mb-1">0</p>
+                        <p class="text-sm text-gray-400">Members</p>
+                    </div>
+                    <div class="rounded-xl bg-white/5 p-6 text-center border border-white/10">
+                        <span class="material-symbols-outlined text-primary text-3xl mb-2 block">album</span>
+                        <p id="albumCount" class="text-3xl font-bold text-white mb-1">0</p>
+                        <p class="text-sm text-gray-400">Albums</p>
+                    </div>
+                    <div class="rounded-xl bg-white/5 p-6 text-center border border-white/10">
+                        <span class="material-symbols-outlined text-primary text-3xl mb-2 block">tour</span>
+                        <p id="tourCount" class="text-3xl font-bold text-white mb-1">0</p>
+                        <p class="text-sm text-gray-400">Tours</p>
+                    </div>
+                    <div class="rounded-xl bg-white/5 p-6 text-center border border-white/10">
+                        <span class="material-symbols-outlined text-primary text-3xl mb-2 block">calendar_today</span>
+                        <p id="turnCount" class="text-3xl font-bold text-white mb-1">0</p>
+                        <p class="text-sm text-gray-400">Turns</p>
+                    </div>
+                </div>
+
+                <!-- Current Status -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="rounded-xl bg-gradient-to-br from-green-500/20 to-green-500/5 p-6 border border-green-500/30">
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="material-symbols-outlined text-green-400 text-2xl">account_balance_wallet</span>
+                            <h3 class="text-xl font-bold text-white">Current Money</h3>
+                        </div>
+                        <p id="currentMoney" class="text-4xl font-black text-green-400">$0</p>
+                    </div>
+                    <div class="rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 p-6 border border-primary/30">
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="material-symbols-outlined text-primary text-2xl">star</span>
+                            <h3 class="text-xl font-bold text-white">Current Fame</h3>
+                        </div>
+                        <p id="currentFame" class="text-4xl font-black text-primary">0</p>
+                        <p class="text-sm text-gray-400 mt-2">Goal: 1,000</p>
+                    </div>
+                </div>
+
+                <!-- Best Album -->
+                <div id="bestAlbumSection" class="rounded-xl bg-white/5 p-6 border border-white/10">
+                    <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">emoji_events</span>
+                        Best Album
+                    </h3>
+                    <div id="bestAlbumContent">
+                        <p class="text-gray-400">No albums recorded yet.</p>
+                    </div>
+                </div>
+
+                <!-- Back Button -->
+                <div class="flex justify-center">
+                    <a href="dashboard.html" class="px-8 py-3 bg-primary hover:bg-primary/90 rounded-lg font-bold text-white transition-all">
+                        Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Game Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/supabase-client.js"></script>
+    <script src="js/game-master.js"></script>
+    <script src="js/game-manager.js"></script>
+
+    <!-- Page Script -->
+    <script src="js/biography.js"></script>
+</body>
+</html>

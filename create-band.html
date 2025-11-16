@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Band Manager - Create Your Band</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400;500;600;700;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f425af",
+                        "background-light": "#f8f5f7",
+                        "background-dark": "#22101c",
+                    },
+                    fontFamily: {
+                        "display": ["Spline Sans", "sans-serif"]
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-gray-200">
+    <div class="relative flex h-screen w-full items-center justify-center overflow-hidden">
+        <!-- Background gradient -->
+        <div class="absolute inset-0 bg-gradient-to-br from-primary/20 via-background-dark to-background-dark"></div>
+
+        <!-- Create Band Card -->
+        <div class="relative z-10 w-full max-w-2xl p-6">
+            <div class="rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 p-8 sm:p-12 shadow-2xl">
+                <!-- Icon -->
+                <div class="text-center mb-8">
+                    <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/20 mb-6 animate-pulse">
+                        <span class="material-symbols-outlined text-5xl text-primary">groups</span>
+                    </div>
+                    <h1 class="text-4xl sm:text-5xl font-black text-white mb-4">Start Your Band!</h1>
+                    <p class="text-lg text-gray-400">Every legend starts with a name. What's yours?</p>
+                </div>
+
+                <!-- Form -->
+                <form id="createBandForm" class="space-y-6">
+                    <div>
+                        <label class="block text-base font-semibold text-gray-300 mb-3">Your Band Name</label>
+                        <input
+                            type="text"
+                            id="bandName"
+                            required
+                            maxlength="50"
+                            class="w-full px-6 py-4 rounded-lg bg-white/5 border-2 border-white/10 text-white text-xl font-bold placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                            placeholder="e.g., The Electric Dreams"
+                        />
+                        <p class="mt-2 text-sm text-gray-500">Choose wisely! This will be your band's identity.</p>
+                    </div>
+
+                    <!-- Starting Info -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-lg bg-white/5 border border-white/10">
+                        <div class="text-center">
+                            <p class="text-sm text-gray-400 mb-1">Starting Money</p>
+                            <p class="text-2xl font-bold text-green-400">$5,000</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-sm text-gray-400 mb-1">Starting Fame</p>
+                            <p class="text-2xl font-bold text-primary">0</p>
+                        </div>
+                    </div>
+
+                    <!-- Info Box -->
+                    <div class="p-4 rounded-lg bg-primary/10 border border-primary/30">
+                        <div class="flex items-start gap-3">
+                            <span class="material-symbols-outlined text-primary mt-1">info</span>
+                            <div class="flex-1">
+                                <p class="text-sm text-gray-300">
+                                    <strong>Goal:</strong> Reach 1,000 Fame to enter the Hall of Fame!<br/>
+                                    <strong>Watch Out:</strong> Don't let your money drop below -$1,000 or your band will break up!
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button
+                        type="submit"
+                        id="submitBtn"
+                        class="w-full py-4 px-6 bg-primary hover:bg-primary/90 text-white text-lg font-black rounded-lg transition-all transform hover:scale-105 shadow-lg shadow-primary/30 uppercase tracking-wide"
+                    >
+                        Start Your Career!
+                    </button>
+                </form>
+
+                <!-- Error Message -->
+                <div id="errorMessage" class="mt-4 p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-300 text-sm hidden">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-lg">error</span>
+                        <span id="errorText"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Game Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/supabase-client.js"></script>
+    <script src="js/game-manager.js"></script>
+    <script src="js/game-master.js"></script>
+
+    <!-- Page Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            await db.init();
+
+            // Check if user is logged in
+            const user = await db.getCurrentUser();
+            if (!user) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Check if they already have a band
+            const gameState = await db.getGameState();
+            if (gameState) {
+                window.location.href = 'dashboard.html';
+                return;
+            }
+
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            document.getElementById('createBandForm').addEventListener('submit', handleCreateBand);
+        }
+
+        async function handleCreateBand(e) {
+            e.preventDefault();
+
+            const bandName = document.getElementById('bandName').value.trim();
+
+            if (!bandName) {
+                showError('Please enter a band name!');
+                return;
+            }
+
+            if (bandName.length < 3) {
+                showError('Band name must be at least 3 characters!');
+                return;
+            }
+
+            try {
+                // Disable button
+                const btn = document.getElementById('submitBtn');
+                btn.disabled = true;
+                btn.textContent = 'Creating Your Band...';
+
+                // Initialize game manager
+                await gameManager.init();
+
+                // Create new game
+                await gameManager.createNewGame(bandName);
+
+                // Redirect to dashboard
+                window.location.href = 'dashboard.html';
+            } catch (error) {
+                console.error('Error creating band:', error);
+                showError('Failed to create your band. Please try again.');
+
+                // Re-enable button
+                const btn = document.getElementById('submitBtn');
+                btn.disabled = false;
+                btn.textContent = 'Start Your Career!';
+            }
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            errorText.textContent = message;
+            errorDiv.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

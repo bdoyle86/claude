@@ -1,0 +1,19 @@
+{
+  "name": "band-manager-simulation",
+  "version": "1.0.0",
+  "description": "A turn-based band management simulation game for ages 10-13",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx http-server -p 3000 -o",
+    "start": "npx http-server -p 3000"
+  },
+  "keywords": ["game", "simulation", "band", "music", "educational"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}

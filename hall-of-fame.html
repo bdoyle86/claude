@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Band Manager - Hall of Fame</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400;500;700;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f425af",
+                        "background-light": "#f8f5f7",
+                        "background-dark": "#22101c",
+                    },
+                    fontFamily: {
+                        "display": ["Spline Sans", "sans-serif"]
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24
+        }
+        .trophy-gold { color: #FFD700; }
+        .trophy-silver { color: #C0C0C0; }
+        .trophy-bronze { color: #CD7F32; }
+    </style>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark text-white">
+    <div class="relative flex h-auto min-h-screen w-full flex-col">
+        <header class="sticky top-0 z-10 w-full border-b border-white/10 bg-background-dark/80 backdrop-blur-md">
+            <div class="container mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
+                <a href="dashboard.html" class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary text-2xl">music_note</span>
+                    <span class="font-bold text-white text-lg">Band Manager</span>
+                </a>
+            </div>
+        </header>
+
+        <main class="flex flex-1 justify-center py-10 sm:py-16">
+            <div class="container flex max-w-4xl flex-col gap-8 px-4">
+                <!-- Header -->
+                <div class="text-center">
+                    <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-primary/20 mb-6 animate-pulse">
+                        <span class="material-symbols-outlined text-6xl text-primary" style="font-variation-settings: 'FILL' 1;">emoji_events</span>
+                    </div>
+                    <h1 class="text-5xl sm:text-6xl font-black text-white mb-4">Hall of Fame</h1>
+                    <p class="text-xl text-gray-400">The Greatest Bands of All Time</p>
+                </div>
+
+                <!-- Info Box -->
+                <div class="rounded-xl bg-primary/10 border border-primary/30 p-6">
+                    <div class="flex items-start gap-3">
+                        <span class="material-symbols-outlined text-primary text-2xl mt-1">info</span>
+                        <div>
+                            <p class="text-white font-semibold mb-1">How to Get Here</p>
+                            <p class="text-gray-300 text-sm">Reach 1,000 Fame to be inducted into the Hall of Fame and immortalize your band forever!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hall of Fame List -->
+                <div class="flex flex-col gap-4" id="hallOfFameList">
+                    <div class="text-center py-12">
+                        <div class="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                        <p class="text-gray-400">Loading legends...</p>
+                    </div>
+                </div>
+
+                <!-- Empty State (hidden by default) -->
+                <div id="emptyState" class="hidden rounded-xl bg-white/5 border border-white/10 p-12 text-center">
+                    <span class="material-symbols-outlined text-6xl text-gray-600 mb-4 block">emoji_events</span>
+                    <p class="text-xl font-bold text-white mb-2">No Legends Yet!</p>
+                    <p class="text-gray-400">Be the first to reach 1,000 fame and claim your spot in history!</p>
+                </div>
+
+                <!-- Back Button -->
+                <div class="flex justify-center">
+                    <a href="dashboard.html" class="px-8 py-3 bg-primary hover:bg-primary/90 rounded-lg font-bold text-white transition-all">
+                        Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Game Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/supabase-client.js"></script>
+
+    <!-- Page Script -->
+    <script src="js/hall-of-fame.js"></script>
+</body>
+</html>
