@@ -56,17 +56,41 @@ export default function PackOpening() {
 
       // Add cards to user's collection
       if (user && generatedCards.length > 0) {
-        const userCards = generatedCards.map(card => ({
-          user_id: user.id,
-          card_id: card.id,
-          quantity: 1
-        }))
+        for (const card of generatedCards) {
+          // Check if user already has this card
+          const { data: existingCard, error: checkError } = await supabase
+            .from('user_cards')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('card_id', card.id)
+            .single()
 
-        const { error: insertError } = await supabase
-          .from('user_cards')
-          .insert(userCards)
+          if (checkError && checkError.code !== 'PGRST116') {
+            console.error('Error checking card:', checkError)
+            continue
+          }
 
-        if (insertError) console.error('Error adding cards to collection:', insertError)
+          if (existingCard) {
+            // Update quantity
+            const { error: updateError } = await supabase
+              .from('user_cards')
+              .update({ quantity: existingCard.quantity + 1 })
+              .eq('id', existingCard.id)
+
+            if (updateError) console.error('Error updating card quantity:', updateError)
+          } else {
+            // Insert new card
+            const { error: insertError } = await supabase
+              .from('user_cards')
+              .insert({
+                user_id: user.id,
+                card_id: card.id,
+                quantity: 1
+              })
+
+            if (insertError) console.error('Error inserting card:', insertError)
+          }
+        }
       }
     } catch (error) {
       console.error('Error generating cards:', error)

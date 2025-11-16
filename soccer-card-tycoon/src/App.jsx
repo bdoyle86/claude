@@ -8,6 +8,8 @@ import PackStore from './pages/PackStore'
 import PackOpening from './pages/PackOpening'
 import Collection from './pages/Collection'
 import Market from './pages/Market'
+import TeamManager from './pages/TeamManager'
+import Battle from './pages/Battle'
 
 function App() {
   return (
@@ -58,6 +60,24 @@ function App() {
             element={
               <ProtectedRoute>
                 <Market />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/team-manager"
+            element={
+              <ProtectedRoute>
+                <TeamManager />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/battle"
+            element={
+              <ProtectedRoute>
+                <Battle />
               </ProtectedRoute>
             }
           />

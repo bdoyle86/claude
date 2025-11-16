@@ -49,6 +49,18 @@ export default function Home() {
             </div>
           </Link>
 
+          {/* Battle Arena */}
+          <Link to="/battle" className="relative flex flex-col justify-end min-h-[200px] rounded-xl overflow-hidden group bg-hot-pink border-4 border-black shadow-[4px_4px_0px_#FF35A5] animate-pulse">
+            <div className="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-luminosity" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800")' }}></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+            <div className="relative z-10 flex flex-col items-center justify-center text-center p-4 h-full">
+              <div className="text-5xl mb-2">⚔️</div>
+              <h2 className="font-display text-3xl text-white text-outline-black" style={{ textShadow: '3px 3px 0 #FF35A5' }}>BATTLE ARENA</h2>
+              <p className="text-white/90 text-sm font-bold uppercase tracking-widest">Head to Head Combat!</p>
+              <span className="mt-2 px-3 py-1 bg-vibrant-green text-black text-xs font-pixel rounded border-2 border-black">NEW!</span>
+            </div>
+          </Link>
+
           {/* Settings/Logout */}
           <div className="flex gap-4 mt-4">
             <button
