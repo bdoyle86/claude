@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { storeService } from '../api/services';
+import { supabase } from '../lib/supabase';
 
 const SingleCardStore = () => {
   const navigate = useNavigate();
-  const { user, updateUserCoins } = useAuth();
+  const { user, profile, updateUserCoins } = useAuth();
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [buying, setBuying] = useState(null);
@@ -18,17 +18,38 @@ const SingleCardStore = () => {
 
   const loadStoreCards = async () => {
     try {
-      const data = await storeService.getStoreCards();
-      setCards(data.cards);
+      const { data, error } = await supabase
+        .from('store_cards')
+        .select(`
+          price,
+          stock,
+          cards (*)
+        `)
+        .neq('stock', 0)
+        .order('cards(rarity)', { ascending: false });
+
+      if (error) throw error;
+
+      // Flatten the data structure - spread card fields and add price/stock
+      const flattenedCards = data.map(item => ({
+        ...item.cards,
+        price: item.price,
+        stock: item.stock
+      }));
+
+      setCards(flattenedCards);
     } catch (err) {
       setError('Failed to load store cards');
+      console.error('Load store cards error:', err);
     } finally {
       setLoading(false);
     }
   };
 
   const handleBuyCard = async (cardId, price) => {
-    if (user.coins < price) {
+    if (!user || !profile) return;
+
+    if (profile.coins < price) {
       setError('Not enough coins!');
       setTimeout(() => setError(''), 3000);
       return;
@@ -38,12 +59,61 @@ const SingleCardStore = () => {
     setError('');
 
     try {
-      const data = await storeService.buyCard(cardId);
-      updateUserCoins(data.coins);
-      setSuccess(`${data.card.player_name} added to your collection!`);
+      // Get card details for success message
+      const { data: cardData, error: cardError } = await supabase
+        .from('cards')
+        .select('player_name')
+        .eq('id', cardId)
+        .single();
+
+      if (cardError) throw cardError;
+
+      // Deduct coins from profile
+      const newCoins = profile.coins - price;
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ coins: newCoins })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
+      // Check if card is already in user's collection
+      const { data: existingCard, error: checkError } = await supabase
+        .from('user_cards')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('card_id', cardId)
+        .single();
+
+      if (checkError && checkError.code !== 'PGRST116') {
+        throw checkError;
+      }
+
+      if (existingCard) {
+        // Increment quantity
+        const { error: incrementError } = await supabase
+          .from('user_cards')
+          .update({ quantity: existingCard.quantity + 1 })
+          .eq('user_id', user.id)
+          .eq('card_id', cardId);
+
+        if (incrementError) throw incrementError;
+      } else {
+        // Add new card
+        const { error: insertError } = await supabase
+          .from('user_cards')
+          .insert({ user_id: user.id, card_id: cardId, quantity: 1 });
+
+        if (insertError) throw insertError;
+      }
+
+      // Update coins in context
+      updateUserCoins(newCoins);
+      setSuccess(`${cardData.player_name} added to your collection!`);
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to buy card');
+      setError(err.message || 'Failed to buy card');
+      console.error('Buy card error:', err);
       setTimeout(() => setError(''), 3000);
     } finally {
       setBuying(null);
@@ -72,7 +142,7 @@ const SingleCardStore = () => {
           Card Store
         </h2>
         <div className="flex w-auto items-center justify-end rounded-full bg-black/30 px-3 py-1.5">
-          <p className="text-[#FFD700] text-base font-bold leading-normal tracking-[0.015em] shrink-0">{user?.coins || 0}</p>
+          <p className="text-[#FFD700] text-base font-bold leading-normal tracking-[0.015em] shrink-0">{profile?.coins || 0}</p>
           <span className="material-symbols-outlined text-[#FFD700] text-xl ml-1">monetization_on</span>
         </div>
       </div>
@@ -149,10 +219,10 @@ const SingleCardStore = () => {
                     </div>
                     <button
                       onClick={() => handleBuyCard(card.id, card.price)}
-                      disabled={buying === card.id || user.coins < card.price}
+                      disabled={buying === card.id || !profile || profile.coins < card.price}
                       className="flex-1 bg-primary text-background-dark font-bold py-2 px-4 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {buying === card.id ? 'Buying...' : user.coins < card.price ? 'Not Enough Coins' : 'Buy Now'}
+                      {buying === card.id ? 'Buying...' : !profile || profile.coins < card.price ? 'Not Enough Coins' : 'Buy Now'}
                     </button>
                   </div>
                 </div>

@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { collectionService } from '../api/services';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
 
 const CardDetail = () => {
   const { cardId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [card, setCard] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -13,9 +15,34 @@ const CardDetail = () => {
   }, [cardId]);
 
   const loadCard = async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
     try {
-      const data = await collectionService.getCardDetails(cardId);
-      setCard(data.card);
+      // Get card details
+      const { data: cardData, error: cardError } = await supabase
+        .from('cards')
+        .select('*')
+        .eq('id', cardId)
+        .single();
+
+      if (cardError) throw cardError;
+
+      // Get user's ownership info (optional)
+      const { data: userCard } = await supabase
+        .from('user_cards')
+        .select('quantity')
+        .eq('user_id', user.id)
+        .eq('card_id', cardId)
+        .single();
+
+      // Combine card data with quantity if owned
+      setCard({
+        ...cardData,
+        quantity: userCard?.quantity || 0
+      });
     } catch (err) {
       console.error('Failed to load card:', err);
     } finally {

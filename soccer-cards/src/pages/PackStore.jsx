@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { packService } from '../api/services';
+import { supabase } from '../lib/supabase';
 
 const PackStore = () => {
   const navigate = useNavigate();
-  const { user, updateUserCoins } = useAuth();
+  const { user, profile, updateUserCoins } = useAuth();
   const [packs, setPacks] = useState([]);
   const [selectedPack, setSelectedPack] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -20,21 +20,28 @@ const PackStore = () => {
 
   const loadPacks = async () => {
     try {
-      const data = await packService.getPacks();
-      setPacks(data.packs);
-      if (data.packs.length > 0) {
-        setSelectedPack(data.packs[0]);
+      const { data, error } = await supabase
+        .from('packs')
+        .select('*');
+
+      if (error) throw error;
+
+      setPacks(data);
+      if (data.length > 0) {
+        setSelectedPack(data[0]);
       }
     } catch (err) {
       setError('Failed to load packs');
+      console.error('Load packs error:', err);
     } finally {
       setLoading(false);
     }
   };
 
   const handleBuyPack = async () => {
-    if (!selectedPack) return;
-    if (user.coins < selectedPack.price) {
+    if (!selectedPack || !user || !profile) return;
+
+    if (profile.coins < selectedPack.price) {
       setError('Not enough coins!');
       return;
     }
@@ -43,12 +50,79 @@ const PackStore = () => {
     setError('');
 
     try {
-      const data = await packService.buyPack(selectedPack.id);
-      setOpenedCards(data.cards);
-      updateUserCoins(data.coins);
+      // Deduct coins from profile
+      const newCoins = profile.coins - selectedPack.price;
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ coins: newCoins })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
+      // Generate cards based on rarity distribution (70% Common, 25% Rare, 5% Epic)
+      const cards = [];
+      for (let i = 0; i < selectedPack.card_count; i++) {
+        const random = Math.random() * 100;
+        let rarity;
+
+        if (random < 5) {
+          rarity = 'Epic';
+        } else if (random < 30) { // 5 + 25 = 30
+          rarity = 'Rare';
+        } else {
+          rarity = 'Common';
+        }
+
+        // Get all cards of the selected rarity and pick one randomly
+        const { data: cardData, error: cardError } = await supabase
+          .from('cards')
+          .select('*')
+          .eq('rarity', rarity);
+
+        if (cardError) throw cardError;
+
+        if (cardData && cardData.length > 0) {
+          const card = cardData[Math.floor(Math.random() * cardData.length)];
+          cards.push(card);
+
+          // Check if user already has this card
+          const { data: existingCard, error: checkError } = await supabase
+            .from('user_cards')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('card_id', card.id)
+            .single();
+
+          if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
+            throw checkError;
+          }
+
+          if (existingCard) {
+            // Increment quantity
+            const { error: incrementError } = await supabase
+              .from('user_cards')
+              .update({ quantity: existingCard.quantity + 1 })
+              .eq('user_id', user.id)
+              .eq('card_id', card.id);
+
+            if (incrementError) throw incrementError;
+          } else {
+            // Add new card
+            const { error: insertError } = await supabase
+              .from('user_cards')
+              .insert({ user_id: user.id, card_id: card.id, quantity: 1 });
+
+            if (insertError) throw insertError;
+          }
+        }
+      }
+
+      setOpenedCards(cards);
+      updateUserCoins(newCoins);
       setShowCards(true);
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to buy pack');
+      setError(err.message || 'Failed to buy pack');
+      console.error('Buy pack error:', err);
     } finally {
       setBuying(false);
     }
@@ -122,7 +196,7 @@ const PackStore = () => {
         </button>
         <h2 className="text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Pack Store</h2>
         <div className="flex w-auto items-center justify-end rounded-full bg-black/30 px-3 py-1.5">
-          <p className="text-[#FFD700] text-base font-bold leading-normal tracking-[0.015em] shrink-0">{user?.coins || 0}</p>
+          <p className="text-[#FFD700] text-base font-bold leading-normal tracking-[0.015em] shrink-0">{profile?.coins || 0}</p>
           <span className="material-symbols-outlined text-[#FFD700] text-xl ml-1">monetization_on</span>
         </div>
       </div>
@@ -168,7 +242,7 @@ const PackStore = () => {
           </div>
           <button
             onClick={handleBuyPack}
-            disabled={buying || user.coins < selectedPack.price}
+            disabled={buying || !profile || profile.coins < selectedPack.price}
             className="flex h-14 w-full items-center justify-center rounded-xl bg-primary px-6 shadow-[0_4px_14px_0_rgba(50,205,50,0.39)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors"
           >
             <span className="text-lg font-bold text-background-dark">

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { collectionService } from '../api/services';
+import { supabase } from '../lib/supabase';
 
 const Collection = () => {
   const navigate = useNavigate();
@@ -21,9 +21,32 @@ const Collection = () => {
   }, [selectedRarity, sortBy, cards]);
 
   const loadCollection = async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
     try {
-      const data = await collectionService.getCollection();
-      setCards(data.cards);
+      const { data, error } = await supabase
+        .from('user_cards')
+        .select(`
+          quantity,
+          acquired_at,
+          cards (*)
+        `)
+        .eq('user_id', user.id)
+        .order('acquired_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Flatten the data structure - spread card fields and add quantity
+      const flattenedCards = data.map(item => ({
+        ...item.cards,
+        quantity: item.quantity,
+        acquired_at: item.acquired_at
+      }));
+
+      setCards(flattenedCards);
     } catch (err) {
       console.error('Failed to load collection:', err);
     } finally {
