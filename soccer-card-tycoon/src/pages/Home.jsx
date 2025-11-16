@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import Header from '../components/Header'
 import BottomNav from '../components/BottomNav'
+import DailyReward from '../components/DailyReward'
 
 export default function Home() {
   const { signOut } = useAuth()
@@ -16,6 +17,8 @@ export default function Home() {
         <Header />
 
         <div className="p-4 flex flex-col gap-8">
+          {/* Daily Reward */}
+          <DailyReward />
           {/* Pack Store Card */}
           <Link to="/packs" className="relative flex flex-col justify-end min-h-[200px] rounded-xl overflow-hidden group bg-accent-blue border-4 border-black shadow-[4px_4px_0px_#00C2FF]">
             <div className="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-luminosity" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800")' }}></div>

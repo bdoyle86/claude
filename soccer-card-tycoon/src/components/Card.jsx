@@ -1,4 +1,4 @@
-export default function Card({ card, onClick, showNew = false }) {
+export default function Card({ card, onClick, showNew = false, quantity = 1 }) {
   const getRarityColor = (rarity) => {
     switch (rarity) {
       case 'Epic':
@@ -45,6 +45,15 @@ export default function Card({ card, onClick, showNew = false }) {
           <div className="relative bg-vibrant-green px-3 py-1 text-black border-2 border-black">
             <div className="absolute -inset-1 animate-ping bg-vibrant-green/50 blur-sm"></div>
             <span className="relative font-pixel text-sm font-bold">NEW!</span>
+          </div>
+        </div>
+      )}
+
+      {/* Quantity Badge */}
+      {quantity > 1 && (
+        <div className="absolute top-0 left-0 p-2 z-10">
+          <div className="bg-black/90 border-2 border-white px-2 py-1 rounded">
+            <p className="text-white font-pixel text-xs">x{quantity}</p>
           </div>
         </div>
       )}

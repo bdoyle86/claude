@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext'
 import Header from '../components/Header'
 import BottomNav from '../components/BottomNav'
 import Card from '../components/Card'
+import CardDetailModal from '../components/CardDetailModal'
 
 export default function Collection() {
   const [userCards, setUserCards] = useState([])
@@ -12,6 +13,8 @@ export default function Collection() {
   const [selectedFilter, setSelectedFilter] = useState('All')
   const [sortOrder, setSortOrder] = useState('name')
   const [loading, setLoading] = useState(true)
+  const [selectedCard, setSelectedCard] = useState(null)
+  const [cardQuantities, setCardQuantities] = useState({})
   const { user } = useAuth()
   const navigate = useNavigate()
 
@@ -37,9 +40,17 @@ export default function Collection() {
 
       if (error) throw error
 
-      // Extract the card data
+      // Extract the card data and track quantities
       const cards = data.map(uc => uc.cards).filter(Boolean)
+      const quantities = {}
+      data.forEach(uc => {
+        if (uc.cards) {
+          quantities[uc.cards.id] = uc.quantity || 1
+        }
+      })
+
       setUserCards(cards)
+      setCardQuantities(quantities)
     } catch (error) {
       console.error('Error fetching user cards:', error)
     } finally {
@@ -143,13 +154,27 @@ export default function Collection() {
         ) : (
           <div className="grid grid-cols-[repeat(auto-fit,minmax(158px,1fr))] gap-4 p-4">
             {filteredCards.map((card, index) => (
-              <Card key={`${card.id}-${index}`} card={card} />
+              <Card
+                key={`${card.id}-${index}`}
+                card={card}
+                onClick={() => setSelectedCard(card)}
+                quantity={cardQuantities[card.id]}
+              />
             ))}
           </div>
         )}
       </main>
 
       <BottomNav />
+
+      {/* Card Detail Modal */}
+      {selectedCard && (
+        <CardDetailModal
+          card={selectedCard}
+          quantity={cardQuantities[selectedCard.id]}
+          onClose={() => setSelectedCard(null)}
+        />
+      )}
     </div>
   )
 }
