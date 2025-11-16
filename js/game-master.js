@@ -75,14 +75,8 @@ Response format:
     }
 
     async callOpenAI(request) {
-        // NOTE: In production, this should be a backend endpoint
-        // For now, we'll use a mock response for development
-        // Replace this with actual API call when backend is ready
-
-        const useBackend = CONFIG.openai.endpoint !== '/api/game-master';
-
-        if (useBackend) {
-            // Call backend proxy
+        // Try to call backend proxy first
+        try {
             const response = await fetch(CONFIG.openai.endpoint, {
                 method: 'POST',
                 headers: {
@@ -92,12 +86,15 @@ Response format:
             });
 
             if (!response.ok) {
-                throw new Error(`Backend error: ${response.statusText}`);
+                console.warn('Backend returned error, falling back to mock response');
+                return this.getMockResponse(request);
             }
 
-            return await response.json();
-        } else {
-            // For development: Use local logic or mock response
+            const data = await response.json();
+            console.log('✓ Using OpenAI API response');
+            return data;
+        } catch (error) {
+            console.warn('Backend not available, using mock response:', error.message);
             return this.getMockResponse(request);
         }
     }

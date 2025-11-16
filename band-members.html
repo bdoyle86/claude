@@ -36,26 +36,26 @@
     <div class="relative flex h-auto min-h-screen w-full flex-col">
         <div class="layout-container flex h-full grow flex-col">
             <!-- Top Nav Bar -->
-            <header class="flex items-center justify-between whitespace-nowrap border-b border-solid dark:border-border-dark px-10 py-3">
-                <div class="flex items-center gap-4 text-white">
-                    <div class="size-6 text-primary">
-                        <span class="material-symbols-outlined !text-3xl">music_note</span>
+            <header class="flex flex-wrap items-center justify-between gap-4 border-b border-solid dark:border-border-dark px-4 sm:px-6 md:px-10 py-3">
+                <div class="flex items-center gap-2 sm:gap-4 text-white">
+                    <div class="size-6 text-primary flex-shrink-0">
+                        <span class="material-symbols-outlined !text-2xl sm:!text-3xl">music_note</span>
                     </div>
-                    <h2 class="text-white text-lg font-bold leading-tight tracking-[-0.015em]">Band Manager</h2>
+                    <h2 class="text-white text-base sm:text-lg font-bold leading-tight tracking-[-0.015em]">Band Manager</h2>
                 </div>
-                <div class="flex flex-1 justify-end gap-8">
-                    <div class="hidden sm:flex items-center gap-9">
-                        <a class="text-white/80 hover:text-white text-sm font-medium leading-normal" href="dashboard.html">Dashboard</a>
-                        <a class="text-white text-sm font-bold leading-normal" href="band-members.html">Band</a>
-                        <a class="text-white/80 hover:text-white text-sm font-medium leading-normal" href="record-album.html">Studio</a>
-                        <a class="text-white/80 hover:text-white text-sm font-medium leading-normal" href="tour.html">Tour</a>
+                <div class="flex flex-wrap items-center justify-end gap-2 sm:gap-4">
+                    <div class="hidden md:flex items-center gap-4 lg:gap-9">
+                        <a class="text-white/80 hover:text-white text-sm font-medium leading-normal whitespace-nowrap" href="dashboard.html">Dashboard</a>
+                        <a class="text-white text-sm font-bold leading-normal whitespace-nowrap" href="band-members.html">Band</a>
+                        <a class="text-white/80 hover:text-white text-sm font-medium leading-normal whitespace-nowrap" href="record-album.html">Studio</a>
+                        <a class="text-white/80 hover:text-white text-sm font-medium leading-normal whitespace-nowrap" href="tour.html">Tour</a>
                     </div>
                     <div class="flex gap-2">
-                        <div class="flex min-w-[84px] max-w-[480px] items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]">
-                            <span id="fameHeader">Fame: 0</span>
+                        <div class="flex items-center justify-center rounded-lg h-8 sm:h-10 px-2 sm:px-4 bg-primary text-white text-xs sm:text-sm font-bold leading-normal">
+                            <span id="fameHeader" class="whitespace-nowrap">Fame: 0</span>
                         </div>
-                        <div class="flex min-w-[84px] max-w-[480px] items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-surface-dark text-white text-sm font-bold leading-normal tracking-[0.015em]">
-                            <span id="moneyHeader">Money: $0</span>
+                        <div class="flex items-center justify-center rounded-lg h-8 sm:h-10 px-2 sm:px-4 bg-surface-dark text-white text-xs sm:text-sm font-bold leading-normal">
+                            <span id="moneyHeader" class="whitespace-nowrap">$0</span>
                         </div>
                     </div>
                 </div>
@@ -63,8 +63,8 @@
 
             <main class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <!-- Page Heading -->
-                <div class="flex flex-wrap justify-between gap-3 p-4">
-                    <p class="text-white text-4xl font-black leading-tight tracking-[-0.033em] min-w-72">Manage Your Band</p>
+                <div class="flex flex-wrap justify-between gap-3 p-2 sm:p-4">
+                    <p class="text-white text-2xl sm:text-3xl md:text-4xl font-black leading-tight tracking-[-0.033em]">Manage Your Band</p>
                 </div>
 
                 <!-- Main Content Grid -->

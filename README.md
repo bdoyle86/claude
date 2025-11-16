@@ -112,18 +112,35 @@ npm install
    };
    ```
 
-2. **Optional - Set up OpenAI API** (for production):
-   - The game currently uses mock AI responses for development
-   - To use real ChatGPT API, you need to create a backend proxy
-   - See "Production Deployment" section below
+2. **Set up the Backend API Server** (for OpenAI integration):
+   ```bash
+   # Navigate to server folder
+   cd server
 
-### Step 5: Run the Development Server
+   # Install dependencies
+   npm install
+
+   # The .env file is already configured with your API key
+   # Start the server
+   npm start
+   ```
+
+   The server will run on `http://localhost:3001`
+
+### Step 5: Run the Frontend Development Server
+
+Open a new terminal window and run:
 
 ```bash
+# From the project root
 npm run dev
 ```
 
 The game will open in your browser at `http://localhost:3000`.
+
+**Important**: Make sure BOTH servers are running:
+- ✅ Backend API (port 3001) - handles OpenAI requests
+- ✅ Frontend (port 3000) - the game interface
 
 ## How to Play
 
@@ -206,31 +223,35 @@ The game uses ChatGPT API as the "Game Master" to:
 - Create personalized feedback emails
 - Balance game difficulty
 
-### Current Setup (Development)
-The `game-master.js` file includes a **mock response system** for development that works without an OpenAI API key.
+### Current Setup
+The game includes a **secure backend server** (`server/` folder) that:
+- ✅ Keeps your OpenAI API key secure (never exposed to frontend)
+- ✅ Proxies requests to OpenAI API
+- ✅ Falls back to mock responses if API is unavailable
+- ✅ Works locally and can be deployed to production
 
-### Production Setup (Optional)
-To use real ChatGPT API:
+### Using the Real OpenAI API
 
-1. Create a backend server (Node.js, Python, etc.)
-2. Create an endpoint that proxies requests to OpenAI
-3. Update `CONFIG.openai.endpoint` in `config.js`
-4. Never expose your API key in frontend code
+1. **Backend is already configured** with your API key in `server/.env`
+2. **Start the backend server**:
+   ```bash
+   cd server
+   npm start
+   ```
+3. **The frontend automatically uses it** - no additional configuration needed!
 
-**Example backend endpoint** (Node.js/Express):
-```javascript
-app.post('/api/game-master', async (req, res) => {
-    const response = await openai.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [
-            { role: 'system', content: SYSTEM_PROMPT },
-            { role: 'user', content: JSON.stringify(req.body) }
-        ],
-        response_format: { type: 'json_object' }
-    });
-    res.json(JSON.parse(response.choices[0].message.content));
-});
-```
+### Fallback Mode
+
+If the backend server isn't running, the game automatically uses mock responses:
+- ✅ Perfect for development without API costs
+- ✅ Works offline
+- ✅ Same game experience, just simpler outcomes
+
+### Checking Which Mode You're In
+
+Open the browser console and look for:
+- `✓ Using OpenAI API response` - Real AI is working!
+- `Backend not available, using mock response` - Using fallback mode
 
 ## Production Deployment
 

@@ -1,0 +1,21 @@
+{
+  "name": "band-manager-api",
+  "version": "1.0.0",
+  "description": "Secure backend proxy for Band Manager game using OpenAI API",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "keywords": ["band-manager", "game", "api", "openai"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
