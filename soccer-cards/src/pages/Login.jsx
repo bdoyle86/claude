@@ -6,7 +6,7 @@ const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [formData, setFormData] = useState({
-    username: '',
+    email: '',
     password: ''
   });
   const [loading, setLoading] = useState(false);
@@ -26,7 +26,7 @@ const Login = () => {
     setError('');
 
     try {
-      await login(formData.username, formData.password);
+      await login(formData.email, formData.password);
       navigate('/home');
     } catch (err) {
       setError(err.message);
@@ -76,19 +76,19 @@ const Login = () => {
             )}
 
             <label className="flex flex-col w-full">
-              <p className="text-[#BCCCDC] text-base font-medium leading-normal pb-2">Username</p>
+              <p className="text-[#BCCCDC] text-base font-medium leading-normal pb-2">Email</p>
               <div className="flex w-full flex-1 items-stretch rounded-lg">
                 <div className="text-[#BCCCDC] flex border-none bg-white/10 items-center justify-center pl-4 rounded-l-lg border-r-0">
-                  <span className="material-symbols-outlined">person</span>
+                  <span className="material-symbols-outlined">email</span>
                 </div>
                 <input
-                  type="text"
-                  name="username"
-                  value={formData.username}
+                  type="email"
+                  name="email"
+                  value={formData.email}
                   onChange={handleChange}
                   required
                   className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-lg text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border-none bg-white/10 h-14 placeholder:text-[#BCCCDC]/60 p-4 pl-3 text-base font-normal leading-normal"
-                  placeholder="Enter your username"
+                  placeholder="Enter your email"
                 />
               </div>
             </label>

@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 
 const Home = () => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { profile, logout } = useAuth();
 
   return (
     <div className="relative flex h-auto min-h-screen w-full flex-col bg-background-dark text-white overflow-x-hidden">
@@ -20,7 +20,7 @@ const Home = () => {
               monetization_on
             </span>
             <p className="text-white text-base font-bold leading-normal tracking-[0.015em] shrink-0">
-              {user?.coins || 0}
+              {profile?.coins || 0}
             </p>
           </div>
         </div>
@@ -28,7 +28,7 @@ const Home = () => {
         {/* Main Content */}
         <div className="p-4 flex flex-col gap-6">
           <div className="text-center">
-            <h2 className="text-3xl font-bold text-white mb-2">Welcome, {user?.username}!</h2>
+            <h2 className="text-3xl font-bold text-white mb-2">Welcome, {profile?.username}!</h2>
             <p className="text-white/70">Start collecting your dream soccer team</p>
           </div>
 
