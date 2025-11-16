@@ -129,7 +129,7 @@ export default function PackStore() {
         </div>
       </div>
 
-      <div className="flex flex-col items-center gap-6 p-4 pt-6 bg-black/50 backdrop-blur-sm mt-4 relative z-10 border-t-4 border-primary">
+      <div className="flex flex-col items-center gap-6 p-4 pt-6 pb-24 bg-black/50 backdrop-blur-sm mt-4 relative z-10 border-t-4 border-primary">
         <div className="flex flex-col items-center justify-center gap-1">
           <p className="text-secondary font-display text-sm tracking-wider uppercase">Price</p>
           <div className="flex items-center gap-2">
