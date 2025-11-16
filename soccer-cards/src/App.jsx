@@ -6,6 +6,7 @@ import Collection from './components/Collection';
 import Shops from './components/Shops';
 import Quests from './components/Quests';
 import MarketNews from './components/MarketNews';
+import Trading from './components/Trading';
 import {
   createInitialGameState,
   saveGame,
@@ -14,6 +15,12 @@ import {
   calculateLevel
 } from './utils/gameLogic';
 import { triggerMarketEvent } from './utils/marketEngine';
+import {
+  executeTrade,
+  generateTradeOffer,
+  refreshTraderOffers,
+  initializeTraders
+} from './utils/tradingLogic';
 import { getAvailableShops } from './data/shops';
 import { getAvailablePacks } from './data/packs';
 import { getAvailableQuests } from './data/quests';
@@ -30,6 +37,13 @@ function App() {
     if (savedGame) {
       // Recalculate level in case XP thresholds changed
       savedGame.level = calculateLevel(savedGame.xp);
+
+      // Backward compatibility: Initialize traders if they don't exist
+      if (!savedGame.traders) {
+        savedGame.traders = initializeTraders(savedGame.level);
+        savedGame.tradeHistory = [];
+      }
+
       setGameState(savedGame);
     } else {
       const newGame = createInitialGameState();
@@ -83,6 +97,68 @@ function App() {
       setCurrentView('dashboard');
       showNotification('Game reset successfully!', 'success');
     }
+  };
+
+  // Trading handlers
+  const handleAcceptTrade = (trade) => {
+    const updatedState = executeTrade(gameState, trade);
+
+    // Remove the offer from trader's active offers
+    const traders = updatedState.traders.map(trader => {
+      if (trader.id === trade.traderId) {
+        return {
+          ...trader,
+          activeOffers: trader.activeOffers.filter(o => o.id !== trade.id)
+        };
+      }
+      return trader;
+    });
+
+    const finalState = { ...updatedState, traders };
+    updateGameState(finalState);
+    showNotification(`✅ Trade completed with ${trade.traderName}!`, 'success');
+  };
+
+  const handleRejectTrade = (trade) => {
+    // Remove the offer from trader's active offers
+    const traders = gameState.traders.map(trader => {
+      if (trader.id === trade.traderId) {
+        return {
+          ...trader,
+          activeOffers: trader.activeOffers.filter(o => o.id !== trade.id)
+        };
+      }
+      return trader;
+    });
+
+    const updatedState = { ...gameState, traders };
+    updateGameState(updatedState);
+    showNotification(`❌ Trade rejected`, 'info');
+  };
+
+  const handleRequestTrade = (trader) => {
+    // Generate a new trade offer from this trader
+    const offer = generateTradeOffer(trader, gameState.cards);
+
+    if (!offer) {
+      showNotification(`${trader.name} doesn't have any trades available right now.`, 'info');
+      return;
+    }
+
+    // Add offer to trader's active offers
+    const traders = gameState.traders.map(t => {
+      if (t.id === trader.id) {
+        return {
+          ...t,
+          activeOffers: [...t.activeOffers, offer]
+        };
+      }
+      return t;
+    });
+
+    const updatedState = { ...gameState, traders };
+    updateGameState(updatedState);
+    showNotification(`📬 New trade offer from ${trader.name}!`, 'success');
   };
 
   if (!gameState) {
@@ -147,6 +223,12 @@ function App() {
           🏪 Shops
         </button>
         <button
+          className={currentView === 'trading' ? 'active' : ''}
+          onClick={() => setCurrentView('trading')}
+        >
+          🤝 Trading
+        </button>
+        <button
           className={currentView === 'collection' ? 'active' : ''}
           onClick={() => setCurrentView('collection')}
         >
@@ -201,6 +283,15 @@ function App() {
             availableQuests={availableQuests}
             updateGameState={updateGameState}
             showNotification={showNotification}
+          />
+        )}
+
+        {currentView === 'trading' && (
+          <Trading
+            gameState={gameState}
+            onAcceptTrade={handleAcceptTrade}
+            onRejectTrade={handleRejectTrade}
+            onRequestTrade={handleRequestTrade}
           />
         )}
       </main>

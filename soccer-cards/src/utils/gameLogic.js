@@ -1,4 +1,5 @@
 import { generateStarterPack } from '../data/cards.js';
+import { initializeTraders } from './tradingLogic.js';
 
 // Level thresholds
 const LEVEL_THRESHOLDS = [
@@ -42,6 +43,7 @@ export const createInitialGameState = () => {
     cardsBought: 0,
     cardsSold: 0,
     packsOpened: 1, // starter pack
+    tradesCompleted: 0,
     netWorthHistory: [
       {
         timestamp: Date.now(),
@@ -53,6 +55,10 @@ export const createInitialGameState = () => {
     activeEvents: [],
     activeQuests: [],
     completedQuests: [],
+
+    // Trading
+    traders: initializeTraders(1), // Initialize with level 1 traders
+    tradeHistory: [],
 
     // Timestamps
     lastSaved: Date.now(),

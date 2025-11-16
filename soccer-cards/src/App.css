@@ -1319,6 +1319,522 @@ body {
   }
 }
 
+/* Trading Styles */
+.trading-container {
+  animation: fadeIn 0.3s ease-in;
+}
+
+.trading-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.trading-header h2 {
+  font-size: 2rem;
+  color: var(--primary-color);
+  margin-bottom: 0.5rem;
+}
+
+.trading-header p {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+}
+
+/* Trade Offers Section */
+.trade-offers-section {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border: 2px solid var(--primary-color);
+  animation: slideUp 0.3s ease-out;
+}
+
+.trade-offers-section h3 {
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+}
+
+.trade-offers-list {
+  display: grid;
+  gap: 1rem;
+}
+
+/* Trade Offer Card */
+.trade-offer-card {
+  background: var(--surface-light);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.trade-offer-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px var(--shadow);
+  border-color: var(--primary-color);
+}
+
+.offer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.trader-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.fairness-badge {
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.fairness-badge.great-deal {
+  background: #4CAF50;
+  color: white;
+}
+
+.fairness-badge.good-deal {
+  background: #8BC34A;
+  color: white;
+}
+
+.fairness-badge.fair {
+  background: #2196F3;
+  color: white;
+}
+
+.fairness-badge.poor-deal {
+  background: #FF9800;
+  color: white;
+}
+
+.fairness-badge.bad-deal {
+  background: #F44336;
+  color: white;
+}
+
+.offer-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.offer-side {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.offer-label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+.card-count {
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.offer-side .value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #FFD700;
+}
+
+.offer-arrow {
+  font-size: 1.5rem;
+  color: var(--primary-color);
+}
+
+/* Traders Section */
+.traders-section {
+  margin-top: 2rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.section-header h3 {
+  font-size: 1.5rem;
+  color: var(--primary-color);
+}
+
+.traders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Trader Card */
+.trader-card {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition: all 0.3s;
+}
+
+.trader-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px var(--shadow);
+  border-color: var(--primary-color);
+}
+
+.trader-avatar {
+  font-size: 3rem;
+  text-align: center;
+}
+
+.trader-info {
+  flex: 1;
+}
+
+.trader-info h4 {
+  font-size: 1.2rem;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.trader-bio {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.trader-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.trader-stats .active-offers {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.trader-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.trader-actions .btn {
+  flex: 1;
+}
+
+/* Trade Offer View */
+.trade-offer-view {
+  animation: fadeIn 0.3s ease-in;
+}
+
+.trade-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.trade-header h2 {
+  flex: 1;
+  font-size: 1.8rem;
+  color: var(--primary-color);
+}
+
+.trade-evaluation {
+  margin-bottom: 2rem;
+}
+
+.fairness-indicator {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  border: 3px solid;
+}
+
+.fairness-indicator.great-deal {
+  border-color: #4CAF50;
+  background: rgba(76, 175, 80, 0.1);
+}
+
+.fairness-indicator.good-deal {
+  border-color: #8BC34A;
+  background: rgba(139, 195, 74, 0.1);
+}
+
+.fairness-indicator.fair {
+  border-color: #2196F3;
+  background: rgba(33, 150, 243, 0.1);
+}
+
+.fairness-indicator.poor-deal {
+  border-color: #FF9800;
+  background: rgba(255, 152, 0, 0.1);
+}
+
+.fairness-indicator.bad-deal {
+  border-color: #F44336;
+  background: rgba(244, 67, 54, 0.1);
+}
+
+.fairness-indicator h3 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.fairness-indicator p {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+}
+
+.trade-details {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.trade-side h3 {
+  font-size: 1.3rem;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+}
+
+.trade-divider {
+  display: flex;
+  align-items: center;
+  font-size: 2rem;
+  color: var(--primary-color);
+}
+
+.cards-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+/* Card Display in Trading */
+.card-item {
+  background: var(--surface-light);
+  border-radius: 8px;
+  padding: 1rem;
+  border: 2px solid;
+}
+
+.card-item.rarity-bronze {
+  border-color: #CD7F32;
+}
+
+.card-item.rarity-silver {
+  border-color: #C0C0C0;
+}
+
+.card-item.rarity-gold {
+  border-color: #FFD700;
+}
+
+.card-item.rarity-platinum {
+  border-color: #E5E4E2;
+}
+
+.card-item.rarity-icon {
+  border-color: #FF1493;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.card-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.card-rating {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.card-details {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.rarity-badge {
+  background: var(--primary-color);
+  color: white;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.card-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.card-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #FFD700;
+  text-align: right;
+}
+
+.trade-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.trade-actions .btn {
+  min-width: 150px;
+}
+
+.btn-success {
+  background: var(--success-color);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-success:hover {
+  background: #45a049;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px var(--shadow);
+}
+
+.btn-danger {
+  background: var(--danger-color);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-danger:hover {
+  background: #da190b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px var(--shadow);
+}
+
+/* Trade History */
+.trade-history-view {
+  animation: fadeIn 0.3s ease-in;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.history-item {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.2s;
+}
+
+.history-item:hover {
+  border-color: var(--primary-color);
+  transform: translateX(4px);
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.history-date {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.profit {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.profit.positive {
+  color: #4CAF50;
+}
+
+.profit.negative {
+  color: #F44336;
+}
+
+.history-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.history-side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.history-side .label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .header-content {
