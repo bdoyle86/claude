@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
+import BottomNav from '../components/BottomNav';
 
 const PackStore = () => {
   const navigate = useNavigate();
@@ -143,38 +144,64 @@ const PackStore = () => {
 
   if (showCards) {
     return (
-      <div className="min-h-screen bg-background-dark text-white p-4">
+      <div className="min-h-screen bg-background-dark text-white p-4 pb-24">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-8 mt-8">You Got!</h2>
+          <h2 className="text-4xl font-bangers text-center mb-2 mt-8 text-primary animate-pulse" style={{ textShadow: '0 0 20px rgba(0, 255, 133, 0.5)' }}>
+            PACK OPENED!
+          </h2>
+          <p className="text-center text-white/70 mb-8">Check out your new cards</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-8">
-            {openedCards.map((card, index) => (
-              <div
-                key={index}
-                className="relative bg-cover bg-center flex flex-col justify-end aspect-[3/4] overflow-hidden card-clip border-2 shadow-lg animate-fadeIn"
-                style={{
-                  backgroundImage: `linear-gradient(0deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 60%), url("${card.image_url}")`,
-                  borderColor: card.rarity === 'Epic' ? '#BE38F3' : card.rarity === 'Rare' ? '#38BDF3' : '#666',
-                  animationDelay: `${index * 200}ms`
-                }}
-              >
-                <div className={`absolute top-2 -right-1 flex items-center justify-center tag-clip px-4 py-1.5 text-xs font-bold text-white backdrop-blur-sm uppercase tracking-wider`}
+            {openedCards.map((card, index) => {
+              const isEpic = card.rarity === 'Epic';
+              const isRare = card.rarity === 'Rare';
+              const glowColor = isEpic ? 'rgba(190, 56, 243, 0.6)' : isRare ? 'rgba(56, 189, 243, 0.6)' : 'rgba(102, 102, 102, 0.3)';
+
+              return (
+                <div
+                  key={index}
+                  className="relative bg-cover bg-center flex flex-col justify-end aspect-[3/4] overflow-hidden card-clip border-2 shadow-lg animate-[flipIn_0.6s_ease-out_forwards] opacity-0 hover:scale-105 transition-transform cursor-pointer"
                   style={{
-                    backgroundColor: card.rarity === 'Epic' ? '#BE38F3' : card.rarity === 'Rare' ? '#38BDF3' : '#666'
+                    backgroundImage: `linear-gradient(0deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 60%), url("${card.image_url}")`,
+                    borderColor: card.rarity === 'Epic' ? '#BE38F3' : card.rarity === 'Rare' ? '#38BDF3' : '#666',
+                    animationDelay: `${index * 150}ms`,
+                    boxShadow: `0 0 30px ${glowColor}, 0 8px 20px rgba(0, 0, 0, 0.4)`
                   }}
+                  onClick={() => navigate(`/card/${card.id}`)}
                 >
-                  {card.rarity}
+                  {/* Shimmer effect for Epic/Rare cards */}
+                  {(isEpic || isRare) && (
+                    <div
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[shimmer_2s_infinite]"
+                      style={{ animationDelay: `${index * 150 + 600}ms` }}
+                    />
+                  )}
+
+                  <div className={`absolute top-2 -right-1 flex items-center justify-center tag-clip px-4 py-1.5 text-xs font-bold text-white backdrop-blur-sm uppercase tracking-wider animate-[slideInRight_0.4s_ease-out_forwards]`}
+                    style={{
+                      backgroundColor: card.rarity === 'Epic' ? '#BE38F3' : card.rarity === 'Rare' ? '#38BDF3' : '#666',
+                      animationDelay: `${index * 150 + 300}ms`,
+                      opacity: 0
+                    }}
+                  >
+                    {card.rarity}
+                  </div>
+                  <div className="p-3 relative z-10">
+                    <p className="text-white text-base font-black leading-tight line-clamp-2 uppercase drop-shadow-lg">{card.player_name}</p>
+                  </div>
+
+                  {/* NEW badge */}
+                  <div className="absolute top-2 left-2 bg-primary text-background-dark px-2 py-1 rounded-full text-xs font-bold animate-bounce">
+                    NEW
+                  </div>
                 </div>
-                <div className="p-3">
-                  <p className="text-white text-base font-black leading-tight line-clamp-2 uppercase">{card.player_name}</p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
           <button
             onClick={handleCloseCards}
-            className="w-full bg-primary text-background-dark font-bold py-4 rounded-lg hover:bg-primary/90 transition-colors"
+            className="w-full bg-primary text-background-dark font-bold py-4 rounded-lg hover:bg-primary/90 transition-all hover:scale-105 shadow-lg shadow-primary/30"
           >
-            CONTINUE
+            CONTINUE TO COLLECTION
           </button>
         </div>
       </div>
@@ -182,7 +209,7 @@ const PackStore = () => {
   }
 
   return (
-    <div className="relative flex h-auto min-h-screen w-full flex-col bg-background-light dark:bg-background-dark overflow-hidden" style={{
+    <div className="relative flex h-auto min-h-screen w-full flex-col bg-background-light dark:bg-background-dark overflow-hidden pb-20" style={{
       backgroundImage: `linear-gradient(rgba(10, 42, 90, 0.95), rgba(10, 42, 90, 0.95)),
                 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='49' viewBox='0 0 28 49'%3E%3Cg fill-rule='evenodd'%3E%3Cg id='hexagons' fill='%23ffffff' fill-opacity='0.05' fill-rule='nonzero'%3E%3Cpath d='M13.99 9.25l13 7.5v15l-13 7.5L1 31.75v-15l12.99-7.5zM3 17.9v12.7l10.99 6.34 11-6.35V17.9l-11-6.34L3 17.9zM0 15l12.99-7.5L26 15v18.5l-13 7.5L0 33.5V15z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
     }}>
@@ -251,6 +278,7 @@ const PackStore = () => {
           </button>
         </div>
       )}
+      <BottomNav />
     </div>
   );
 };

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
+import BottomNav from '../components/BottomNav';
 
 const Collection = () => {
   const navigate = useNavigate();
@@ -82,8 +83,8 @@ const Collection = () => {
   }
 
   return (
-    <div className="relative flex h-auto min-h-screen w-full flex-col bg-background-dark/95 backdrop-blur-sm overflow-x-hidden">
-      <main className="flex-1 pb-24">
+    <div className="relative flex h-auto min-h-screen w-full flex-col bg-background-dark/95 backdrop-blur-sm overflow-x-hidden pb-20">
+      <main className="flex-1">
         {/* Header */}
         <div className="sticky top-0 z-10 flex items-center justify-between p-4 pb-2 bg-background-dark/80 backdrop-blur-sm">
           <button
@@ -197,6 +198,7 @@ const Collection = () => {
           </div>
         )}
       </main>
+      <BottomNav />
     </div>
   );
 };

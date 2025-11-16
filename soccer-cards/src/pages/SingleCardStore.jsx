@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
+import BottomNav from '../components/BottomNav';
 
 const SingleCardStore = () => {
   const navigate = useNavigate();
@@ -129,7 +130,7 @@ const SingleCardStore = () => {
   }
 
   return (
-    <div className="relative flex h-auto min-h-screen w-full flex-col bg-background-dark text-white overflow-x-hidden">
+    <div className="relative flex h-auto min-h-screen w-full flex-col bg-background-dark text-white overflow-x-hidden pb-20">
       {/* Header */}
       <div className="sticky top-0 z-10 flex items-center p-4 justify-between bg-background-dark/80 backdrop-blur-sm border-b border-white/10">
         <button
@@ -231,6 +232,7 @@ const SingleCardStore = () => {
           })}
         </div>
       )}
+      <BottomNav />
     </div>
   );
 };

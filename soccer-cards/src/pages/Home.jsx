@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import BottomNav from '../components/BottomNav';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -90,6 +91,7 @@ const Home = () => {
           </button>
         </div>
       </main>
+      <BottomNav />
     </div>
   );
 };
