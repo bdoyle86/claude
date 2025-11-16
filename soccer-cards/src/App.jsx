@@ -11,6 +11,7 @@ import PackStore from './pages/PackStore';
 import Collection from './pages/Collection';
 import CardDetail from './pages/CardDetail';
 import SingleCardStore from './pages/SingleCardStore';
+import Profile from './pages/Profile';
 
 function App() {
   return (
@@ -61,6 +62,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <SingleCardStore />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
                 </ProtectedRoute>
               }
             />

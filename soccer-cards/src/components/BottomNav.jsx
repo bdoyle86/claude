@@ -24,6 +24,11 @@ const BottomNav = () => {
       path: '/store',
       icon: 'storefront',
       label: 'Store'
+    },
+    {
+      path: '/profile',
+      icon: 'account_circle',
+      label: 'Profile'
     }
   ];
 

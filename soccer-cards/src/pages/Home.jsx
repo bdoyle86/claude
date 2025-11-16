@@ -4,18 +4,21 @@ import BottomNav from '../components/BottomNav';
 
 const Home = () => {
   const navigate = useNavigate();
-  const { profile, logout } = useAuth();
+  const { profile } = useAuth();
 
   return (
     <div className="relative flex h-auto min-h-screen w-full flex-col bg-background-dark text-white overflow-x-hidden">
       <main className="flex-grow pb-24">
         {/* Header */}
         <div className="sticky top-0 z-10 flex items-center p-4 justify-between bg-background-dark/80 backdrop-blur-sm">
-          <div className="flex size-12 shrink-0 items-center">
+          <button
+            onClick={() => navigate('/profile')}
+            className="flex size-12 shrink-0 items-center hover:scale-110 transition-transform"
+          >
             <div className="bg-primary bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary flex items-center justify-center">
               <span className="material-symbols-outlined text-background-dark">person</span>
             </div>
-          </div>
+          </button>
           <div className="flex items-center justify-center rounded-full bg-black/30 px-3 py-1.5 gap-2">
             <span className="material-symbols-outlined text-accent-yellow text-2xl" style={{filter: 'drop-shadow(0 0 5px #FFD700)'}}>
               monetization_on
@@ -80,15 +83,6 @@ const Home = () => {
               <p className="text-white/90 text-sm font-medium leading-normal">Buy Specific Cards</p>
             </div>
           </div>
-
-          {/* Logout Button */}
-          <button
-            onClick={logout}
-            className="w-full mt-4 flex items-center justify-center gap-2 rounded-lg bg-red-600/20 border border-red-500 text-red-500 px-4 py-3 hover:bg-red-600/30 transition-colors"
-          >
-            <span className="material-symbols-outlined">logout</span>
-            <span className="font-bold">Logout</span>
-          </button>
         </div>
       </main>
       <BottomNav />
