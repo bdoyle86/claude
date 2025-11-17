@@ -32,14 +32,56 @@ export default function PackOpening() {
 
       const cardCount = pack.card_count || 5
       const generatedCards = []
+      const packName = pack.name || ''
 
-      for (let i = 0; i < cardCount; i++) {
+      // Determine drop rates based on pack type
+      let epicChance, rareChance
+      let guaranteedEpic = false
+      let minRares = 0
+
+      if (packName.includes('Elite')) {
+        // Elite Pack: Guaranteed Epic + 3+ Rares
+        epicChance = 0.20  // 20% for additional epics
+        rareChance = 0.70  // 70% for rares
+        guaranteedEpic = true
+        minRares = 3
+      } else if (packName.includes('Premium')) {
+        // Premium Pack: 10% Epic, 40% Rare
+        epicChance = 0.10
+        rareChance = 0.50  // 40% rare + 10% epic = 50% total
+      } else {
+        // Standard Pack: 5% Epic, 25% Rare
+        epicChance = 0.05
+        rareChance = 0.30  // 25% rare + 5% epic = 30% total
+      }
+
+      // First, add guaranteed Epic for Elite packs
+      if (guaranteedEpic) {
+        const epicCards = allCards.filter(card => card.rarity === 'Epic')
+        if (epicCards.length > 0) {
+          const randomEpic = epicCards[Math.floor(Math.random() * epicCards.length)]
+          generatedCards.push(randomEpic)
+        }
+      }
+
+      // Add minimum guaranteed Rares for Elite packs
+      if (minRares > 0) {
+        const rareCards = allCards.filter(card => card.rarity === 'Rare')
+        for (let i = 0; i < minRares && rareCards.length > 0; i++) {
+          const randomRare = rareCards[Math.floor(Math.random() * rareCards.length)]
+          generatedCards.push(randomRare)
+        }
+      }
+
+      // Fill remaining slots
+      const remainingSlots = cardCount - generatedCards.length
+      for (let i = 0; i < remainingSlots; i++) {
         const rand = Math.random()
         let rarity
 
-        if (rand < 0.05) {
+        if (rand < epicChance) {
           rarity = 'Epic'
-        } else if (rand < 0.30) {
+        } else if (rand < rareChance) {
           rarity = 'Rare'
         } else {
           rarity = 'Common'

@@ -15,6 +15,11 @@ export default function Collection() {
   const [loading, setLoading] = useState(true)
   const [selectedCard, setSelectedCard] = useState(null)
   const [cardQuantities, setCardQuantities] = useState({})
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
+  const [positionFilter, setPositionFilter] = useState('All')
+  const [minRating, setMinRating] = useState(0)
+  const [maxRating, setMaxRating] = useState(100)
   const { user } = useAuth()
   const navigate = useNavigate()
 
@@ -26,7 +31,7 @@ export default function Collection() {
 
   useEffect(() => {
     filterAndSortCards()
-  }, [userCards, selectedFilter, sortOrder])
+  }, [userCards, selectedFilter, sortOrder, searchQuery, positionFilter, minRating, maxRating])
 
   const fetchUserCards = async () => {
     try {
@@ -61,16 +66,40 @@ export default function Collection() {
   const filterAndSortCards = () => {
     let filtered = [...userCards]
 
-    // Apply filter
+    // Apply search
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase()
+      filtered = filtered.filter(card =>
+        card.player_name?.toLowerCase().includes(query) ||
+        card.club?.toLowerCase().includes(query) ||
+        card.country?.toLowerCase().includes(query)
+      )
+    }
+
+    // Apply rarity filter
     if (selectedFilter !== 'All') {
       filtered = filtered.filter(card => card.rarity === selectedFilter)
     }
+
+    // Apply position filter
+    if (positionFilter !== 'All') {
+      filtered = filtered.filter(card => card.position === positionFilter)
+    }
+
+    // Apply rating filter
+    filtered = filtered.filter(card => {
+      const rating = card.overall_rating || 75
+      return rating >= minRating && rating <= maxRating
+    })
 
     // Apply sort
     if (sortOrder === 'name') {
       filtered.sort((a, b) => a.player_name.localeCompare(b.player_name))
     } else if (sortOrder === 'rating') {
       filtered.sort((a, b) => (b.overall_rating || 0) - (a.overall_rating || 0))
+    } else if (sortOrder === 'rarity') {
+      const rarityOrder = { 'Epic': 3, 'Rare': 2, 'Common': 1 }
+      filtered.sort((a, b) => (rarityOrder[b.rarity] || 0) - (rarityOrder[a.rarity] || 0))
     }
 
     setFilteredCards(filtered)
@@ -102,15 +131,114 @@ export default function Collection() {
           </div>
         </div>
 
-        <div className="sticky top-[76px] z-10 flex flex-wrap gap-3 p-4 bg-background-dark/80 backdrop-blur-sm">
+        {/* Search Bar */}
+        <div className="sticky top-[76px] z-10 p-4 bg-background-dark/80 backdrop-blur-sm border-b-2 border-gray-700">
+          <div className="flex gap-2">
+            <div className="flex-1 relative">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search players, clubs, countries..."
+                className="w-full h-12 px-4 pl-12 bg-black/50 border-2 border-electric-blue text-white font-body rounded-lg focus:outline-none focus:border-accent-gold placeholder-gray-500"
+              />
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-electric-blue text-2xl">search</span>
+            </div>
+            <button
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              className={`h-12 px-4 rounded-lg font-display border-2 border-black transition-all ${
+                showAdvancedFilters ? 'bg-accent-gold text-black' : 'bg-gray-700 text-white'
+              }`}
+            >
+              <span className="material-symbols-outlined">tune</span>
+            </button>
+          </div>
+
+          {/* Advanced Filters */}
+          {showAdvancedFilters && (
+            <div className="mt-4 p-4 bg-black/50 rounded-lg border-2 border-electric-blue space-y-4">
+              {/* Position Filter */}
+              <div>
+                <label className="text-white font-pixel text-xs mb-2 block">POSITION</label>
+                <div className="flex gap-2 flex-wrap">
+                  {['All', 'GK', 'DEF', 'MID', 'FWD'].map((pos) => (
+                    <button
+                      key={pos}
+                      onClick={() => setPositionFilter(pos)}
+                      className={`px-3 py-1 rounded font-pixel text-[10px] border-2 border-black ${
+                        positionFilter === pos ? 'bg-electric-blue text-black' : 'bg-gray-700 text-white'
+                      }`}
+                    >
+                      {pos}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Rating Range */}
+              <div>
+                <label className="text-white font-pixel text-xs mb-2 block">
+                  RATING: {minRating} - {maxRating}
+                </label>
+                <div className="flex gap-4">
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={minRating}
+                    onChange={(e) => setMinRating(parseInt(e.target.value))}
+                    className="flex-1"
+                  />
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={maxRating}
+                    onChange={(e) => setMaxRating(parseInt(e.target.value))}
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+
+              {/* Clear Filters */}
+              <button
+                onClick={() => {
+                  setSearchQuery('')
+                  setSelectedFilter('All')
+                  setPositionFilter('All')
+                  setMinRating(0)
+                  setMaxRating(100)
+                }}
+                className="w-full h-10 rounded-lg bg-red-500 text-white font-display border-2 border-black"
+              >
+                Clear All Filters
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Sort Controls */}
+        <div className={`${showAdvancedFilters ? 'sticky top-[350px]' : 'sticky top-[196px]'} z-10 flex flex-wrap gap-3 p-4 bg-background-dark/80 backdrop-blur-sm`}>
           <button
-            onClick={() => setSortOrder(sortOrder === 'name' ? 'rating' : 'name')}
-            className="filter-clip-90s flex h-12 flex-1 items-center justify-center gap-x-2 bg-electric-blue hover:bg-cyan-400 pixel-border"
+            onClick={() => setSortOrder('name')}
+            className={`filter-clip-90s flex h-10 flex-1 items-center justify-center gap-x-2 pixel-border ${sortOrder === 'name' ? 'bg-electric-blue' : 'bg-gray-700'}`}
           >
-            <span className="material-symbols-outlined text-black text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>sort_by_alpha</span>
-            <p className="text-base font-display leading-normal text-black text-outline-white-sm">
-              {sortOrder === 'name' ? 'SORT A-Z' : 'SORT RATING'}
-            </p>
+            <span className="material-symbols-outlined text-${sortOrder === 'name' ? 'black' : 'white'} text-xl">sort_by_alpha</span>
+            <p className={`text-sm font-pixel ${sortOrder === 'name' ? 'text-black' : 'text-white'}`}>A-Z</p>
+          </button>
+          <button
+            onClick={() => setSortOrder('rating')}
+            className={`filter-clip-90s flex h-10 flex-1 items-center justify-center gap-x-2 pixel-border ${sortOrder === 'rating' ? 'bg-accent-gold' : 'bg-gray-700'}`}
+          >
+            <span className="material-symbols-outlined text-${sortOrder === 'rating' ? 'black' : 'white'} text-xl">star</span>
+            <p className={`text-sm font-pixel ${sortOrder === 'rating' ? 'text-black' : 'text-white'}`}>RATING</p>
+          </button>
+          <button
+            onClick={() => setSortOrder('rarity')}
+            className={`filter-clip-90s flex h-10 flex-1 items-center justify-center gap-x-2 pixel-border ${sortOrder === 'rarity' ? 'bg-accent-purple' : 'bg-gray-700'}`}
+          >
+            <span className="material-symbols-outlined text-${sortOrder === 'rarity' ? 'white' : 'white'} text-xl">diamond</span>
+            <p className={`text-sm font-pixel text-white`}>RARITY</p>
           </button>
         </div>
 

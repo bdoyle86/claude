@@ -10,6 +10,8 @@ import Collection from './pages/Collection'
 import Market from './pages/Market'
 import TeamManager from './pages/TeamManager'
 import Battle from './pages/Battle'
+import Leaderboard from './pages/Leaderboard'
+import TransactionHistory from './pages/TransactionHistory'
 
 function App() {
   return (
@@ -78,6 +80,24 @@ function App() {
             element={
               <ProtectedRoute>
                 <Battle />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/leaderboard"
+            element={
+              <ProtectedRoute>
+                <Leaderboard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/transactions"
+            element={
+              <ProtectedRoute>
+                <TransactionHistory />
               </ProtectedRoute>
             }
           />

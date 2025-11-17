@@ -98,53 +98,137 @@ export default function PackStore() {
     image_url: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800'
   }
 
+  const getPackColor = (packName) => {
+    if (packName?.includes('Elite')) return { border: 'border-accent-purple', bg: 'bg-accent-purple/20', glow: '#BE38F3' }
+    if (packName?.includes('Premium')) return { border: 'border-accent-gold', bg: 'bg-accent-gold/20', glow: '#F3BE38' }
+    return { border: 'border-accent-blue', bg: 'bg-accent-blue/20', glow: '#38BDF3' }
+  }
+
+  const allPacks = packs.length > 0 ? packs : [
+    {
+      id: 'default',
+      name: 'Standard Pack',
+      description: 'Contains 5 player cards',
+      price: 100,
+      card_count: 5,
+      image_url: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800'
+    }
+  ]
+
   return (
-    <div className="relative flex min-h-screen w-full flex-col overflow-hidden" style={{ backgroundColor: '#4A00E0', backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'40\' height=\'40\' viewBox=\'0 0 40 40\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'%23F7FF00\' fill-opacity=\'0.1\' fill-rule=\'evenodd\'%3E%3Cpath d=\'M0 40L40 0H20L0 20M40 40V20L20 40\'/%3E%3C/g%3E%3C/svg%3E"),url("data:image/svg+xml,%3Csvg width=\'6\' height=\'6\' viewBox=\'0 0 6 6\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'%2300F0FF\' fill-opacity=\'0.1\' fill-rule=\'evenodd\'%3E%3Cpath d=\'M5 0h1L0 6V5zM6 5v1H5z\'/%3E%3C/g%3E%3C/svg%3E"),linear-gradient(45deg, #4A00E0 0%, #8E2DE2 100%)', backgroundBlendMode: 'overlay, overlay, normal' }}>
-      <div className="flex items-center p-4 pb-2 justify-between shrink-0 bg-transparent relative z-10">
-        <div className="flex size-12 shrink-0 items-center justify-start cursor-pointer" onClick={() => navigate(-1)}>
-          <span className="material-symbols-outlined text-secondary text-4xl">arrow_back_ios_new</span>
+    <div className="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden bg-90s-combo">
+      {/* Header */}
+      <div className="sticky top-0 z-20 flex items-center justify-between p-4 pb-2 bg-background-dark/90 backdrop-blur-sm border-b-4 border-primary">
+        <div className="flex size-12 shrink-0 items-center justify-start cursor-pointer" onClick={() => navigate('/')}>
+          <span className="material-symbols-outlined text-primary text-4xl">arrow_back_ios_new</span>
         </div>
-        <h2 className="text-white text-lg font-display uppercase tracking-tighter">Pack Store</h2>
+        <h2 className="flex-1 text-center text-3xl font-display leading-tight tracking-[-0.015em] text-primary text-outline-black">PACK STORE</h2>
         <div className="flex items-center justify-end rounded-lg bg-black/50 px-3 py-1.5 border-2 border-accent-gold shadow-pixel-hard-sm">
           <p className="text-accent-gold text-lg font-display leading-none shrink-0">{profile?.coins || 0}</p>
           <span className="material-symbols-outlined text-accent-gold text-xl ml-2">paid</span>
         </div>
       </div>
 
-      <div className="flex flex-col grow px-4">
-        <div className="relative flex w-full grow items-center justify-center py-3">
-          <div className="absolute inset-x-0 top-1/2 h-1/2 -translate-y-1/2 bg-secondary/20 blur-3xl rounded-full"></div>
-          <div className="w-full max-w-xs aspect-[3/4] flex-shrink-0" style={{ transform: 'perspective(1000px) rotateY(-5deg) rotateX(2deg) scale(1.05)' }}>
-            <div className="h-full w-full bg-center bg-no-repeat bg-cover rounded-xl shadow-2xl shadow-black/50 border-4 border-white" style={{ backgroundImage: `url("${defaultPack.image_url}")` }}></div>
-          </div>
-        </div>
+      <main className="flex-1 pb-24 p-4">
+        <div className="flex flex-col gap-6">
+          {allPacks.map((pack) => {
+            const colors = getPackColor(pack.name)
+            return (
+              <div
+                key={pack.id}
+                className={`relative flex flex-col rounded-xl overflow-hidden border-4 ${colors.border} ${colors.bg} backdrop-blur-sm shadow-lg`}
+                style={{ boxShadow: `0 0 20px ${colors.glow}40` }}
+              >
+                {/* Pack Image */}
+                <div className="relative h-64 overflow-hidden">
+                  <div
+                    className="absolute inset-0 bg-cover bg-center"
+                    style={{
+                      backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.8) 100%), url("${pack.image_url || 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800'}")`
+                    }}
+                  />
 
-        <div className="flex flex-col items-center text-center -mt-8 relative z-10">
-          <h1 className="text-white text-4xl font-display uppercase tracking-tight" style={{ textShadow: '3px 3px 0px #FF3B81, 6px 6px 0px rgba(0,0,0,0.5)' }}>
-            {defaultPack.name}
-          </h1>
-          <p className="text-white/80 text-xl font-body leading-normal pt-4 max-w-xs">
-            {defaultPack.description}
-          </p>
-        </div>
-      </div>
+                  {/* Pack Name Overlay */}
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <h3 className="text-3xl font-display text-white uppercase text-outline-black mb-1">
+                      {pack.name}
+                    </h3>
+                    {pack.name?.includes('Elite') && (
+                      <span className="inline-block px-3 py-1 bg-accent-purple text-white text-xs font-pixel rounded border-2 border-black">
+                        BEST VALUE!
+                      </span>
+                    )}
+                    {pack.name?.includes('Premium') && (
+                      <span className="inline-block px-3 py-1 bg-accent-gold text-black text-xs font-pixel rounded border-2 border-black">
+                        POPULAR!
+                      </span>
+                    )}
+                  </div>
+                </div>
 
-      <div className="flex flex-col items-center gap-6 p-4 pt-6 pb-24 bg-black/50 backdrop-blur-sm mt-4 relative z-10 border-t-4 border-primary">
-        <div className="flex flex-col items-center justify-center gap-1">
-          <p className="text-secondary font-display text-sm tracking-wider uppercase">Price</p>
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-accent-gold text-4xl" style={{ filter: 'drop-shadow(0 0 8px #F7FF00)' }}>paid</span>
-            <h1 className="text-white text-4xl font-display leading-none tracking-tighter">{defaultPack.price}</h1>
-          </div>
-        </div>
+                {/* Pack Details */}
+                <div className="p-4 space-y-3">
+                  <p className="text-white font-body text-sm">
+                    {pack.description || `Contains ${pack.card_count} player cards`}
+                  </p>
 
-        <button
-          onClick={() => handleBuyClick(defaultPack)}
-          className="flex h-16 w-full items-center justify-center rounded-lg bg-primary px-6 shadow-pixel-hard border-2 border-black transform transition-transform duration-150 active:scale-95 active:shadow-[2px_2px_0px_#000000]"
-        >
-          <span className="text-2xl font-display text-white uppercase tracking-wider" style={{ textShadow: '2px 2px 0px rgba(0,0,0,0.4)' }}>Buy Pack</span>
-        </button>
-      </div>
+                  {/* Features */}
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-white text-sm">style</span>
+                    <span className="text-white font-pixel text-xs">{pack.card_count} CARDS</span>
+                  </div>
+
+                  {pack.name?.includes('Elite') && (
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-accent-purple text-xs">●</span>
+                        <span className="text-white/80 font-body text-xs">Guaranteed Epic Card</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-accent-blue text-xs">●</span>
+                        <span className="text-white/80 font-body text-xs">3+ Rare Cards</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {pack.name?.includes('Premium') && (
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-accent-blue text-xs">●</span>
+                        <span className="text-white/80 font-body text-xs">Higher Rare Chance (40%)</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-accent-purple text-xs">●</span>
+                        <span className="text-white/80 font-body text-xs">Epic Chance (10%)</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Price and Buy Button */}
+                  <div className="flex items-center gap-3 pt-2">
+                    <div className="flex items-center gap-2 flex-1">
+                      <span className="material-symbols-outlined text-accent-gold text-2xl">paid</span>
+                      <span className="text-accent-gold text-2xl font-display">{pack.price}</span>
+                    </div>
+                    <button
+                      onClick={() => handleBuyClick(pack)}
+                      className={`h-12 px-6 rounded-lg font-display uppercase border-2 border-black shadow-pixel-hard-sm active:translate-x-1 active:translate-y-1 active:shadow-none transition-all ${
+                        pack.name?.includes('Elite')
+                          ? 'bg-accent-purple text-white'
+                          : pack.name?.includes('Premium')
+                          ? 'bg-accent-gold text-black'
+                          : 'bg-accent-blue text-black'
+                      }`}
+                    >
+                      Buy Pack
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </main>
 
       {/* Confirmation Modal */}
       {showConfirmation && (
