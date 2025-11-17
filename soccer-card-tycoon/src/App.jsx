@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { AchievementProvider } from './contexts/AchievementContext'
+import { TradeProvider } from './contexts/TradeContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import AchievementNotification from './components/AchievementNotification'
 import Login from './pages/Login'
@@ -15,14 +16,18 @@ import Battle from './pages/Battle'
 import Leaderboard from './pages/Leaderboard'
 import TransactionHistory from './pages/TransactionHistory'
 import Profile from './pages/Profile'
+import TradeOffers from './pages/TradeOffers'
+import CreateTrade from './pages/CreateTrade'
+import CardEvolution from './pages/CardEvolution'
 
 function App() {
   return (
     <AuthProvider>
       <AchievementProvider>
-        <Router>
-          <AchievementNotification />
-          <Routes>
+        <TradeProvider>
+          <Router>
+            <AchievementNotification />
+            <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
@@ -116,9 +121,37 @@ function App() {
             }
           />
 
+          <Route
+            path="/trades"
+            element={
+              <ProtectedRoute>
+                <TradeOffers />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/create-trade"
+            element={
+              <ProtectedRoute>
+                <CreateTrade />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/evolution"
+            element={
+              <ProtectedRoute>
+                <CardEvolution />
+              </ProtectedRoute>
+            }
+          />
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
+        </TradeProvider>
     </AchievementProvider>
   </AuthProvider>
   )

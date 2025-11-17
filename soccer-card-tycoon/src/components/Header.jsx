@@ -1,9 +1,11 @@
 import { useAuth } from '../contexts/AuthContext'
+import { useTrading } from '../contexts/TradeContext'
 import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 
 export default function Header() {
   const { profile } = useAuth()
+  const { pendingTradesCount } = useTrading()
   const navigate = useNavigate()
   const [showMenu, setShowMenu] = useState(false)
 
@@ -47,6 +49,30 @@ export default function Header() {
             </button>
           </div>
         )}
+      </div>
+
+      {/* Center Section - Trade & Evolution Notifications */}
+      <div className="flex items-center gap-3">
+        {/* Trade Notifications */}
+        <button
+          onClick={() => navigate('/trades')}
+          className="relative h-10 px-3 rounded-lg bg-card-dark border-2 border-black shadow-pixel-hard-sm hover:scale-105 transition-transform flex items-center gap-2"
+        >
+          <span className="material-symbols-outlined text-electric-blue text-xl">swap_horiz</span>
+          {pendingTradesCount > 0 && (
+            <div className="absolute -top-1 -right-1 bg-vibrant-green text-black rounded-full w-5 h-5 flex items-center justify-center border-2 border-black">
+              <span className="font-pixel text-[10px]">{pendingTradesCount}</span>
+            </div>
+          )}
+        </button>
+
+        {/* Evolution Link */}
+        <button
+          onClick={() => navigate('/evolution')}
+          className="h-10 px-3 rounded-lg bg-card-dark border-2 border-black shadow-pixel-hard-sm hover:scale-105 transition-transform flex items-center gap-2"
+        >
+          <span className="material-symbols-outlined text-accent-gold text-xl">upgrade</span>
+        </button>
       </div>
 
       {/* Coins Display */}
