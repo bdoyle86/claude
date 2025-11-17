@@ -12,6 +12,7 @@ import TeamManager from './pages/TeamManager'
 import Battle from './pages/Battle'
 import Leaderboard from './pages/Leaderboard'
 import TransactionHistory from './pages/TransactionHistory'
+import Profile from './pages/Profile'
 
 function App() {
   return (
@@ -98,6 +99,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <TransactionHistory />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
               </ProtectedRoute>
             }
           />
