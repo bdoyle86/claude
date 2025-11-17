@@ -2,18 +2,32 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
+import Header from '../components/Header'
 import BottomNav from '../components/BottomNav'
 import Card from '../components/Card'
 
+const POSITIONS = ['GK', 'DEF', 'MID', 'FWD']
+const POSITION_NAMES = {
+  'GK': 'Goalkeeper',
+  'DEF': 'Defender',
+  'MID': 'Midfielder',
+  'FWD': 'Forward'
+}
+
 export default function TeamManager() {
   const [userCards, setUserCards] = useState([])
-  const [selectedCards, setSelectedCards] = useState([null, null, null, null, null])
+  const [selectedCards, setSelectedCards] = useState({
+    GK: null,
+    DEF: null,
+    MID: null,
+    FWD: null
+  })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [showToast, setShowToast] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
-  const [teamName, setTeamName] = useState('My Team')
-  const { user, profile } = useAuth()
+  const [filterPosition, setFilterPosition] = useState('ALL')
+  const { user } = useAuth()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -37,7 +51,10 @@ export default function TeamManager() {
 
       const cardsWithQuantity = data?.map(uc => ({
         ...uc.cards,
-        quantity: uc.quantity
+        user_card_id: uc.id,
+        quantity: uc.quantity,
+        evolution_level: uc.evolution_level || 0,
+        bonus_stats: uc.bonus_stats || 0
       })) || []
 
       setUserCards(cardsWithQuantity)
@@ -61,17 +78,16 @@ export default function TeamManager() {
       if (error && error.code !== 'PGRST116') throw error
 
       if (data) {
-        setTeamName(data.name)
-        const team = [
-          data.card_1_id,
-          data.card_2_id,
-          data.card_3_id,
-          data.card_4_id,
-          data.card_5_id
-        ]
+        // Fetch the actual card data for each position
+        const positions = {
+          GK: data.goalkeeper_id,
+          DEF: data.defender_id,
+          MID: data.midfielder_id,
+          FWD: data.forward_id
+        }
 
-        // Fetch the actual card data
-        const cardIds = team.filter(id => id !== null)
+        const cardIds = Object.values(positions).filter(id => id !== null)
+
         if (cardIds.length > 0) {
           const { data: cards, error: cardsError } = await supabase
             .from('cards')
@@ -80,7 +96,13 @@ export default function TeamManager() {
 
           if (cardsError) throw cardsError
 
-          const teamCards = team.map(id => cards?.find(c => c.id === id) || null)
+          const teamCards = {
+            GK: cards?.find(c => c.id === positions.GK) || null,
+            DEF: cards?.find(c => c.id === positions.DEF) || null,
+            MID: cards?.find(c => c.id === positions.MID) || null,
+            FWD: cards?.find(c => c.id === positions.FWD) || null
+          }
+
           setSelectedCards(teamCards)
         }
       }
@@ -89,34 +111,43 @@ export default function TeamManager() {
     }
   }
 
-  const handleCardSelect = (card, slotIndex) => {
-    const newSelected = [...selectedCards]
+  const handleCardSelect = (card, position) => {
+    // Check if card position matches slot position
+    if (card.position !== position) {
+      setToastMessage(`This card is a ${POSITION_NAMES[card.position]}, not a ${POSITION_NAMES[position]}!`)
+      setShowToast(true)
+      setTimeout(() => setShowToast(false), 2000)
+      return
+    }
 
-    // Check if card is already in team
-    const existingIndex = newSelected.findIndex(c => c?.id === card.id)
-    if (existingIndex !== -1 && existingIndex !== slotIndex) {
+    // Check if card is already in another position
+    const cardInTeam = Object.entries(selectedCards).find(([pos, c]) => c?.id === card.id && pos !== position)
+    if (cardInTeam) {
       setToastMessage('Card already in team!')
       setShowToast(true)
       setTimeout(() => setShowToast(false), 2000)
       return
     }
 
-    newSelected[slotIndex] = card
-    setSelectedCards(newSelected)
+    setSelectedCards({
+      ...selectedCards,
+      [position]: card
+    })
   }
 
-  const removeCard = (slotIndex) => {
-    const newSelected = [...selectedCards]
-    newSelected[slotIndex] = null
-    setSelectedCards(newSelected)
+  const removeCard = (position) => {
+    setSelectedCards({
+      ...selectedCards,
+      [position]: null
+    })
   }
 
   const saveTeam = async () => {
     if (!user) return
 
-    // Check if all 5 cards are selected
-    if (selectedCards.some(card => card === null)) {
-      setToastMessage('Please select 5 cards!')
+    // Check if all 4 positions are filled
+    if (Object.values(selectedCards).some(card => card === null)) {
+      setToastMessage('Please select one card for each position!')
       setShowToast(true)
       setTimeout(() => setShowToast(false), 2000)
       return
@@ -127,12 +158,10 @@ export default function TeamManager() {
     try {
       const teamData = {
         user_id: user.id,
-        name: teamName,
-        card_1_id: selectedCards[0].id,
-        card_2_id: selectedCards[1].id,
-        card_3_id: selectedCards[2].id,
-        card_4_id: selectedCards[3].id,
-        card_5_id: selectedCards[4].id,
+        goalkeeper_id: selectedCards.GK.id,
+        defender_id: selectedCards.DEF.id,
+        midfielder_id: selectedCards.MID.id,
+        forward_id: selectedCards.FWD.id,
         updated_at: new Date().toISOString()
       }
 
@@ -170,144 +199,255 @@ export default function TeamManager() {
       }, 1500)
     } catch (error) {
       console.error('Error saving team:', error)
-      setToastMessage('Error saving team!')
+      setToastMessage(`Error saving team: ${error.message}`)
       setShowToast(true)
-      setTimeout(() => setShowToast(false), 2000)
+      setTimeout(() => setShowToast(false), 3000)
     } finally {
       setSaving(false)
     }
   }
 
   const getTeamOverall = () => {
-    const validCards = selectedCards.filter(c => c !== null)
+    const validCards = Object.values(selectedCards).filter(c => c !== null)
     if (validCards.length === 0) return 0
-    const total = validCards.reduce((sum, card) => sum + (card.overall_rating || 75), 0)
+    const total = validCards.reduce((sum, card) => sum + ((card.overall_rating || 75) + (card.bonus_stats || 0)), 0)
     return Math.round(total / validCards.length)
   }
 
+  const getPositionIcon = (position) => {
+    const icons = {
+      'GK': 'sports_soccer',
+      'DEF': 'shield',
+      'MID': 'bolt',
+      'FWD': 'rocket_launch'
+    }
+    return icons[position] || 'person'
+  }
+
+  const getPositionColor = (position) => {
+    const colors = {
+      'GK': 'from-yellow-500 to-orange-500',
+      'DEF': 'from-blue-500 to-blue-700',
+      'MID': 'from-green-500 to-emerald-600',
+      'FWD': 'from-red-500 to-red-700'
+    }
+    return colors[position] || 'from-gray-500 to-gray-700'
+  }
+
+  const filteredCards = filterPosition === 'ALL'
+    ? userCards
+    : userCards.filter(card => card.position === filterPosition)
+
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background-dark">
-        <div className="text-center">
-          <div className="animate-pulse text-4xl text-primary font-pixel">Loading...</div>
-        </div>
+      <div className="min-h-screen bg-gradient-to-b from-background-dark to-background-light pb-20">
+        <Header />
+        <main className="container mx-auto px-4 py-6">
+          <div className="text-center py-20">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-electric-blue border-t-transparent"></div>
+            <p className="text-gray-400 font-body mt-4">Loading your collection...</p>
+          </div>
+        </main>
+        <BottomNav />
       </div>
     )
   }
 
   return (
-    <div className="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden bg-90s-combo">
-      <main className="flex-1 pb-24">
-        {/* Header */}
-        <div className="sticky top-0 z-20 flex items-center justify-between p-4 pb-2 bg-background-dark/90 backdrop-blur-sm border-b-4 border-electric-blue">
-          <div className="flex size-12 shrink-0 items-center justify-start cursor-pointer" onClick={() => navigate('/')}>
-            <span className="material-symbols-outlined text-electric-blue text-4xl">arrow_back_ios_new</span>
-          </div>
-          <h2 className="flex-1 text-center text-3xl font-display leading-tight tracking-[-0.015em] text-electric-blue text-outline-black">TEAM MANAGER</h2>
-          <div className="flex items-center justify-end rounded-lg bg-black/50 px-3 py-1.5 border-2 border-electric-blue shadow-pixel-hard-sm">
-            <p className="text-electric-blue text-lg font-display leading-none shrink-0">{getTeamOverall()}</p>
-            <span className="material-symbols-outlined text-electric-blue text-xl ml-1">star</span>
-          </div>
+    <div className="min-h-screen bg-gradient-to-b from-background-dark to-background-light pb-20">
+      <Header />
+
+      <main className="container mx-auto px-4 py-6 max-w-6xl">
+        <div className="mb-6">
+          <h1 className="text-4xl font-display text-white mb-2">Team Manager</h1>
+          <p className="text-gray-400 font-body">Select one player for each position</p>
         </div>
 
-        {/* Team Name Input */}
-        <div className="p-4 pb-2">
-          <label className="text-white font-pixel text-xs mb-2 block">TEAM NAME</label>
-          <input
-            type="text"
-            value={teamName}
-            onChange={(e) => setTeamName(e.target.value)}
-            maxLength={30}
-            className="w-full px-4 py-3 bg-black/50 border-2 border-electric-blue text-white font-display rounded-lg focus:outline-none focus:border-bright-yellow"
-          />
-        </div>
+        {/* Team Overview */}
+        <div className="bg-black/50 border-2 border-electric-blue rounded-xl p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-display text-electric-blue flex items-center gap-2">
+              <span className="material-symbols-outlined">group</span>
+              YOUR TEAM
+            </h2>
+            <div className="text-right">
+              <p className="text-gray-400 font-body text-sm">Team Rating</p>
+              <p className="text-3xl font-display text-white">{getTeamOverall()}</p>
+            </div>
+          </div>
 
-        {/* Selected Team */}
-        <div className="p-4">
-          <h3 className="text-white font-display text-xl mb-3 uppercase text-outline-black">Your Team (5 Cards)</h3>
-          <div className="grid grid-cols-5 gap-2 mb-4">
-            {selectedCards.map((card, index) => (
-              <div key={index} className="relative">
-                {card ? (
-                  <div className="relative group">
-                    <div
-                      className="aspect-[3/4] bg-cover bg-center rounded border-2 border-electric-blue shadow-[0_0_10px_rgba(56,189,243,0.5)]"
-                      style={{
-                        backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.5) 100%), url("${card.image_url || 'https://via.placeholder.com/300x400'}")`
-                      }}
-                    >
-                      <div className="absolute top-1 right-1 bg-black/70 rounded-full w-5 h-5 flex items-center justify-center text-white text-xs font-display">
-                        {card.overall_rating || 75}
+          {/* Position Slots - Formation Style */}
+          <div className="relative">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {POSITIONS.map(position => {
+                const card = selectedCards[position]
+                return (
+                  <div key={position} className="relative">
+                    <div className={`bg-gradient-to-br ${getPositionColor(position)} p-4 rounded-xl border-2 border-black shadow-pixel-hard`}>
+                      {/* Position Header */}
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <span className="material-symbols-outlined text-white text-xl">
+                            {getPositionIcon(position)}
+                          </span>
+                          <span className="text-white font-display text-sm">{POSITION_NAMES[position]}</span>
+                        </div>
+                        <span className="bg-black/50 text-white font-pixel text-xs px-2 py-1 rounded">{position}</span>
                       </div>
+
+                      {/* Card Slot */}
+                      {card ? (
+                        <div className="relative">
+                          <div className="transform hover:scale-105 transition-transform">
+                            <Card card={card} />
+                          </div>
+                          {card.evolution_level > 0 && (
+                            <div className="absolute top-1 left-1 bg-accent-gold rounded px-1 border border-black">
+                              <span className="text-black font-pixel text-[8px]">+{card.evolution_level}</span>
+                            </div>
+                          )}
+                          <button
+                            onClick={() => removeCard(position)}
+                            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full border-2 border-black flex items-center justify-center hover:scale-110 transition-transform"
+                          >
+                            <span className="material-symbols-outlined text-sm">close</span>
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="aspect-[2/3] bg-black/30 border-2 border-dashed border-white/30 rounded-lg flex items-center justify-center">
+                          <div className="text-center">
+                            <span className="material-symbols-outlined text-white/50 text-4xl mb-2">add</span>
+                            <p className="text-white/50 font-pixel text-xs">Select {POSITION_NAMES[position]}</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <button
-                      onClick={() => removeCard(index)}
-                      className="absolute -top-1 -right-1 bg-red-500 rounded-full w-5 h-5 flex items-center justify-center border border-black opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <span className="material-symbols-outlined text-white text-xs">close</span>
-                    </button>
                   </div>
-                ) : (
-                  <div className="aspect-[3/4] bg-black/30 border-2 border-dashed border-gray-600 rounded flex items-center justify-center">
-                    <span className="material-symbols-outlined text-gray-600 text-2xl">add</span>
-                  </div>
-                )}
-              </div>
-            ))}
+                )
+              })}
+            </div>
           </div>
 
+          {/* Save Button */}
           <button
             onClick={saveTeam}
-            disabled={saving || selectedCards.some(c => c === null)}
-            className={`w-full h-12 rounded-lg font-display uppercase border-2 border-black shadow-pixel-hard-sm transition-all ${
-              saving || selectedCards.some(c => c === null)
-                ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                : 'bg-electric-blue text-black active:translate-x-1 active:translate-y-1 active:shadow-none'
-            }`}
+            disabled={saving || Object.values(selectedCards).some(c => c === null)}
+            className="w-full mt-6 h-14 rounded-lg bg-vibrant-green text-black font-display text-lg uppercase border-2 border-black shadow-pixel-hard hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
           >
-            {saving ? 'Saving...' : 'Save Team & Battle!'}
+            {saving ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-black border-t-transparent"></div>
+                SAVING...
+              </>
+            ) : (
+              <>
+                <span className="material-symbols-outlined">save</span>
+                SAVE TEAM & GO TO BATTLE
+              </>
+            )}
           </button>
         </div>
 
-        {/* Available Cards */}
-        <div className="p-4">
-          <h3 className="text-white font-display text-xl mb-3 uppercase text-outline-black">Your Collection</h3>
-          {userCards.length === 0 ? (
-            <div className="text-center p-8">
-              <p className="text-gray-400 font-body">No cards in collection. Buy packs to get started!</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-3 gap-3">
-              {userCards.map((card) => (
-                <div
-                  key={card.id}
-                  onClick={() => {
-                    const emptySlot = selectedCards.findIndex(c => c === null)
-                    if (emptySlot !== -1) {
-                      handleCardSelect(card, emptySlot)
-                    }
-                  }}
-                  className="cursor-pointer hover:scale-105 transition-transform"
-                >
-                  <Card card={card} quantity={card.quantity} />
+        {/* Card Selection */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-display text-white flex items-center gap-2">
+              <span className="material-symbols-outlined">collections</span>
+              YOUR COLLECTION
+            </h2>
+          </div>
+
+          {/* Position Filters */}
+          <div className="flex gap-2 mb-4 overflow-x-auto">
+            <button
+              onClick={() => setFilterPosition('ALL')}
+              className={`px-4 py-2 rounded-lg font-display text-sm uppercase border-2 border-black transition-all whitespace-nowrap ${
+                filterPosition === 'ALL' ? 'bg-white text-black' : 'bg-black/30 text-gray-400 hover:bg-black/50'
+              }`}
+            >
+              ALL ({userCards.length})
+            </button>
+            {POSITIONS.map(position => (
+              <button
+                key={position}
+                onClick={() => setFilterPosition(position)}
+                className={`px-4 py-2 rounded-lg font-display text-sm uppercase border-2 border-black transition-all whitespace-nowrap flex items-center gap-2 ${
+                  filterPosition === position
+                    ? `bg-gradient-to-r ${getPositionColor(position)} text-white`
+                    : 'bg-black/30 text-gray-400 hover:bg-black/50'
+                }`}
+              >
+                <span className="material-symbols-outlined text-sm">{getPositionIcon(position)}</span>
+                {position} ({userCards.filter(c => c.position === position).length})
+              </button>
+            ))}
+          </div>
+
+          {/* Card Grid */}
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+            {filteredCards.map(card => {
+              const isSelected = Object.values(selectedCards).some(c => c?.id === card.id)
+              const canSelect = !isSelected
+
+              return (
+                <div key={card.id} className="relative">
+                  <div
+                    onClick={() => canSelect && handleCardSelect(card, card.position)}
+                    className={`cursor-pointer transition-all ${
+                      isSelected ? 'opacity-30 scale-95' : 'hover:scale-105'
+                    } ${!canSelect ? 'cursor-not-allowed' : ''}`}
+                  >
+                    <Card card={card} />
+                  </div>
+
+                  {/* Position Badge */}
+                  <div className={`absolute top-1 right-1 bg-gradient-to-br ${getPositionColor(card.position)} text-white font-pixel text-[8px] px-1.5 py-0.5 rounded border border-black`}>
+                    {card.position}
+                  </div>
+
+                  {/* Evolution Badge */}
+                  {card.evolution_level > 0 && (
+                    <div className="absolute top-1 left-1 bg-accent-gold rounded px-1 border border-black">
+                      <span className="text-black font-pixel text-[8px]">+{card.evolution_level}</span>
+                    </div>
+                  )}
+
+                  {/* Selected Checkmark */}
+                  {isSelected && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg">
+                      <div className="w-10 h-10 bg-vibrant-green rounded-full border-2 border-black flex items-center justify-center">
+                        <span className="material-symbols-outlined text-black text-2xl">check</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              ))}
+              )
+            })}
+          </div>
+
+          {filteredCards.length === 0 && (
+            <div className="text-center py-20 bg-black/30 rounded-lg border-2 border-gray-700">
+              <span className="material-symbols-outlined text-6xl text-gray-600 mb-4">inbox</span>
+              <p className="text-gray-400 font-body mb-4">No {filterPosition === 'ALL' ? 'cards' : `${POSITION_NAMES[filterPosition]}s`} in your collection</p>
+              <button
+                onClick={() => navigate('/packs')}
+                className="h-12 px-6 rounded-lg bg-electric-blue text-black font-display uppercase border-2 border-black shadow-pixel-hard hover:scale-105 transition-transform"
+              >
+                OPEN PACKS
+              </button>
             </div>
           )}
         </div>
       </main>
 
-      {/* Toast */}
+      <BottomNav />
+
+      {/* Toast Notification */}
       {showToast && (
-        <div className="absolute left-1/2 top-5 z-50 -translate-x-1/2">
-          <div className="flex items-center gap-3 rounded-lg px-4 py-2 shadow-pixel-hard border-2 border-black bg-electric-blue text-black">
-            <span className="material-symbols-outlined">info</span>
-            <p className="font-display text-sm uppercase">{toastMessage}</p>
-          </div>
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-black border-2 border-white rounded-lg px-6 py-3 shadow-pixel-hard z-50 animate-bounce">
+          <p className="text-white font-display text-sm">{toastMessage}</p>
         </div>
       )}
-
-      <BottomNav />
     </div>
   )
 }
