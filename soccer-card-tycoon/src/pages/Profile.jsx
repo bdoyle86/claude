@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
+import { useAchievements } from '../contexts/AchievementContext'
 import BottomNav from '../components/BottomNav'
 
 export default function Profile() {
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
   const { user, profile, signOut } = useAuth()
+  const { achievements, userAchievements } = useAchievements()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -203,55 +205,134 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* Progress Bar Example */}
+        {/* Achievements */}
         <div className="bg-black/50 rounded-xl border-2 border-vibrant-green p-6">
           <h3 className="text-xl font-display text-vibrant-green mb-4 flex items-center gap-2">
             <span className="material-symbols-outlined">emoji_events</span>
             ACHIEVEMENTS
           </h3>
-          <p className="text-gray-400 font-body text-sm mb-4">Complete challenges to unlock rewards!</p>
+          <p className="text-gray-400 font-body text-sm mb-4">
+            {userAchievements.length} / {achievements.length} Unlocked
+          </p>
 
-          <div className="space-y-4">
-            {/* First Win */}
-            <div>
-              <div className="flex justify-between mb-2">
-                <span className="text-white font-pixel text-xs">First Victory</span>
-                <span className="text-vibrant-green font-pixel text-xs">{stats?.wins >= 1 ? '✓' : `${stats?.wins}/1`}</span>
-              </div>
-              <div className="h-2 bg-black/50 rounded-full overflow-hidden border border-vibrant-green">
-                <div
-                  className="h-full bg-vibrant-green transition-all"
-                  style={{ width: `${Math.min((stats?.wins || 0) / 1 * 100, 100)}%` }}
-                />
+          {/* Unlocked Achievements Grid */}
+          {userAchievements.length > 0 && (
+            <div className="mb-6">
+              <h4 className="text-accent-gold font-pixel text-xs mb-3 uppercase">Unlocked Badges</h4>
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                {userAchievements.map((ua) => {
+                  const achievement = achievements.find(a => a.id === ua.achievement_id)
+                  if (!achievement) return null
+
+                  const getRarityColor = (rarity) => {
+                    switch (rarity) {
+                      case 'legendary': return 'border-accent-gold bg-accent-gold/20'
+                      case 'epic': return 'border-accent-purple bg-accent-purple/20'
+                      case 'rare': return 'border-accent-blue bg-accent-blue/20'
+                      default: return 'border-common-gray bg-common-gray/20'
+                    }
+                  }
+
+                  return (
+                    <div
+                      key={ua.id}
+                      className={`aspect-square rounded-lg border-2 ${getRarityColor(achievement.rarity)} p-2 flex flex-col items-center justify-center gap-1 hover:scale-105 transition-transform cursor-pointer group relative`}
+                      title={achievement.title}
+                    >
+                      <span className="material-symbols-outlined text-2xl text-white">
+                        {achievement.icon}
+                      </span>
+                      <span className="text-white font-pixel text-[8px] text-center leading-tight">
+                        {achievement.title.split(' ').slice(0, 2).join(' ')}
+                      </span>
+
+                      {/* Tooltip */}
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-10">
+                        <div className="bg-black border-2 border-white rounded-lg p-2 whitespace-nowrap">
+                          <p className="text-white font-pixel text-[10px]">{achievement.title}</p>
+                          <p className="text-gray-400 font-body text-[8px]">{achievement.description}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             </div>
+          )}
 
-            {/* Win Streak */}
-            <div>
-              <div className="flex justify-between mb-2">
-                <span className="text-white font-pixel text-xs">Battle Master (10 Wins)</span>
-                <span className="text-vibrant-green font-pixel text-xs">{stats?.wins >= 10 ? '✓' : `${stats?.wins}/10`}</span>
-              </div>
-              <div className="h-2 bg-black/50 rounded-full overflow-hidden border border-vibrant-green">
-                <div
-                  className="h-full bg-vibrant-green transition-all"
-                  style={{ width: `${Math.min((stats?.wins || 0) / 10 * 100, 100)}%` }}
-                />
-              </div>
-            </div>
+          {/* Recent Locked Achievements */}
+          <div>
+            <h4 className="text-gray-400 font-pixel text-xs mb-3 uppercase">Available to Unlock</h4>
+            <div className="space-y-3">
+              {achievements
+                .filter(a => !userAchievements.find(ua => ua.achievement_id === a.id))
+                .slice(0, 5)
+                .map(achievement => {
+                  const getProgress = () => {
+                    if (achievement.category === 'battle') {
+                      if (achievement.name === 'first_victory') return stats?.wins || 0
+                      if (achievement.name === 'battle_warrior') return stats?.wins || 0
+                      if (achievement.name === 'battle_legend') return stats?.wins || 0
+                      if (achievement.name === 'battle_god') return stats?.wins || 0
+                    }
+                    if (achievement.category === 'collection') {
+                      return stats?.totalCards || 0
+                    }
+                    if (achievement.category === 'rarity') {
+                      if (achievement.name.includes('rare')) return stats?.rareCount || 0
+                      if (achievement.name.includes('epic')) return stats?.epicCount || 0
+                    }
+                    return 0
+                  }
 
-            {/* Collection */}
-            <div>
-              <div className="flex justify-between mb-2">
-                <span className="text-white font-pixel text-xs">Collector (50 Cards)</span>
-                <span className="text-electric-blue font-pixel text-xs">{stats?.totalCards >= 50 ? '✓' : `${stats?.totalCards}/50`}</span>
-              </div>
-              <div className="h-2 bg-black/50 rounded-full overflow-hidden border border-electric-blue">
-                <div
-                  className="h-full bg-electric-blue transition-all"
-                  style={{ width: `${Math.min((stats?.totalCards || 0) / 50 * 100, 100)}%` }}
-                />
-              </div>
+                  const progress = getProgress()
+                  const percentage = Math.min((progress / achievement.requirement_value) * 100, 100)
+
+                  const getRarityColor = (rarity) => {
+                    switch (rarity) {
+                      case 'legendary': return 'border-accent-gold'
+                      case 'epic': return 'border-accent-purple'
+                      case 'rare': return 'border-accent-blue'
+                      default: return 'border-common-gray'
+                    }
+                  }
+
+                  return (
+                    <div key={achievement.id} className="bg-black/30 rounded-lg p-3 border border-gray-700">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className={`w-10 h-10 rounded-lg border-2 ${getRarityColor(achievement.rarity)} bg-black/50 flex items-center justify-center flex-shrink-0`}>
+                          <span className="material-symbols-outlined text-xl text-gray-500">{achievement.icon}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white font-pixel text-xs truncate">{achievement.title}</p>
+                          <p className="text-gray-500 font-body text-[10px] truncate">{achievement.description}</p>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <p className="text-accent-gold font-display text-sm">+{achievement.reward_coins}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 h-2 bg-black/50 rounded-full overflow-hidden border border-gray-700">
+                          <div
+                            className={`h-full bg-gradient-to-r ${
+                              achievement.rarity === 'legendary'
+                                ? 'from-accent-gold to-yellow-600'
+                                : achievement.rarity === 'epic'
+                                ? 'from-accent-purple to-purple-600'
+                                : achievement.rarity === 'rare'
+                                ? 'from-accent-blue to-blue-600'
+                                : 'from-common-gray to-gray-600'
+                            } transition-all`}
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                        <span className="text-gray-400 font-pixel text-[10px] flex-shrink-0">
+                          {progress}/{achievement.requirement_value}
+                        </span>
+                      </div>
+                    </div>
+                  )
+                })}
             </div>
           </div>
         </div>

@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
+import { AchievementProvider } from './contexts/AchievementContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
+import AchievementNotification from './components/AchievementNotification'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Home from './pages/Home'
@@ -17,8 +19,10 @@ import Profile from './pages/Profile'
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Routes>
+      <AchievementProvider>
+        <Router>
+          <AchievementNotification />
+          <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
@@ -115,7 +119,8 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
-    </AuthProvider>
+    </AchievementProvider>
+  </AuthProvider>
   )
 }
 

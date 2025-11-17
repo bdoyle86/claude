@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
+import { useAchievements } from '../contexts/AchievementContext'
 import BottomNav from '../components/BottomNav'
 
 export default function Battle() {
@@ -13,6 +14,7 @@ export default function Battle() {
   const [findingOpponent, setFindingOpponent] = useState(false)
   const [battleLog, setBattleLog] = useState([])
   const { user, profile, refreshProfile } = useAuth()
+  const { checkBattleAchievements } = useAchievements()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -229,6 +231,23 @@ export default function Battle() {
         await refreshProfile()
       } catch (error) {
         console.error('Error awarding coins:', error)
+      }
+    }
+
+    // Check battle achievements
+    if (winner === 'player') {
+      try {
+        // Fetch total wins
+        const { data: battles, error: battlesError } = await supabase
+          .from('battles')
+          .select('*')
+          .eq('winner_id', user.id)
+
+        if (!battlesError && battles) {
+          await checkBattleAchievements(battles.length)
+        }
+      } catch (error) {
+        console.error('Error checking battle achievements:', error)
       }
     }
 

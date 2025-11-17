@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
+import { useAchievements } from '../contexts/AchievementContext'
 import Header from '../components/Header'
 import BottomNav from '../components/BottomNav'
 import Card from '../components/Card'
@@ -21,6 +22,7 @@ export default function Collection() {
   const [minRating, setMinRating] = useState(0)
   const [maxRating, setMaxRating] = useState(100)
   const { user } = useAuth()
+  const { checkCollectionAchievements, checkRarityAchievements } = useAchievements()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -56,6 +58,29 @@ export default function Collection() {
 
       setUserCards(cards)
       setCardQuantities(quantities)
+
+      // Check achievements
+      try {
+        // Calculate total cards and rarity counts
+        let totalCards = 0
+        let rareCount = 0
+        let epicCount = 0
+
+        data.forEach(uc => {
+          if (uc.cards) {
+            const qty = uc.quantity || 1
+            totalCards += qty
+            if (uc.cards.rarity === 'Rare') rareCount += qty
+            if (uc.cards.rarity === 'Epic') epicCount += qty
+          }
+        })
+
+        // Check collection and rarity achievements
+        await checkCollectionAchievements(totalCards)
+        await checkRarityAchievements(rareCount, epicCount)
+      } catch (achievementError) {
+        console.error('Error checking achievements:', achievementError)
+      }
     } catch (error) {
       console.error('Error fetching user cards:', error)
     } finally {

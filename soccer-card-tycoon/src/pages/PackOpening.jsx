@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
+import { useAchievements } from '../contexts/AchievementContext'
 
 export default function PackOpening() {
   const [cards, setCards] = useState([])
@@ -12,6 +13,7 @@ export default function PackOpening() {
   const navigate = useNavigate()
   const location = useLocation()
   const { user } = useAuth()
+  const { checkPackAchievements, checkCollectionAchievements, checkRarityAchievements } = useAchievements()
   const pack = location.state?.pack
 
   useEffect(() => {
@@ -132,6 +134,53 @@ export default function PackOpening() {
 
             if (insertError) console.error('Error inserting card:', insertError)
           }
+        }
+
+        // Check achievements after opening pack
+        try {
+          // Fetch updated collection stats
+          const { data: userCards, error: cardsError } = await supabase
+            .from('user_cards')
+            .select(`
+              quantity,
+              cards (
+                rarity
+              )
+            `)
+            .eq('user_id', user.id)
+
+          if (!cardsError && userCards) {
+            // Calculate total cards and rarity counts
+            let totalCards = 0
+            let rareCount = 0
+            let epicCount = 0
+
+            userCards.forEach(uc => {
+              const qty = uc.quantity || 1
+              totalCards += qty
+              if (uc.cards?.rarity === 'Rare') rareCount += qty
+              if (uc.cards?.rarity === 'Epic') epicCount += qty
+            })
+
+            // Check collection achievements
+            await checkCollectionAchievements(totalCards)
+
+            // Check rarity achievements
+            await checkRarityAchievements(rareCount, epicCount)
+          }
+
+          // Track packs opened
+          const { data: transactions, error: transError } = await supabase
+            .from('transactions')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('type', 'pack_purchase')
+
+          if (!transError && transactions) {
+            await checkPackAchievements(transactions.length)
+          }
+        } catch (error) {
+          console.error('Error checking achievements:', error)
         }
       }
     } catch (error) {
