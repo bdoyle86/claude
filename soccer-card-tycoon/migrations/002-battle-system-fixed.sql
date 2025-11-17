@@ -1,4 +1,4 @@
--- Battle System Tables
+-- Battle System Tables (FIXED - Using correct data types)
 
 -- Teams table: stores user's active team composition
 CREATE TABLE IF NOT EXISTS teams (
