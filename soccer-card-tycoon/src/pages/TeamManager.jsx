@@ -14,6 +14,30 @@ const POSITION_NAMES = {
   'FWD': 'Forward'
 }
 
+const FORMATIONS = {
+  '1-1-2': {
+    name: 'Offensive',
+    description: '+10% Attack, -10% Defense',
+    attackBonus: 10,
+    defenseBonus: -10,
+    icon: 'rocket_launch'
+  },
+  '1-2-1': {
+    name: 'Balanced',
+    description: 'No bonuses or penalties',
+    attackBonus: 0,
+    defenseBonus: 0,
+    icon: 'balance'
+  },
+  '2-1-1': {
+    name: 'Defensive',
+    description: '+10% Defense, -10% Attack',
+    attackBonus: -10,
+    defenseBonus: 10,
+    icon: 'shield'
+  }
+}
+
 export default function TeamManager() {
   const [userCards, setUserCards] = useState([])
   const [selectedCards, setSelectedCards] = useState({
@@ -27,6 +51,7 @@ export default function TeamManager() {
   const [showToast, setShowToast] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
   const [filterPosition, setFilterPosition] = useState('ALL')
+  const [formation, setFormation] = useState('1-2-1')
   const { user } = useAuth()
   const navigate = useNavigate()
 
@@ -78,6 +103,11 @@ export default function TeamManager() {
       if (error && error.code !== 'PGRST116') throw error
 
       if (data) {
+        // Set formation
+        if (data.formation) {
+          setFormation(data.formation)
+        }
+
         // Fetch the actual card data for each position
         const positions = {
           GK: data.goalkeeper_id,
@@ -162,6 +192,7 @@ export default function TeamManager() {
         defender_id: selectedCards.DEF.id,
         midfielder_id: selectedCards.MID.id,
         forward_id: selectedCards.FWD.id,
+        formation: formation,
         updated_at: new Date().toISOString()
       }
 
@@ -261,6 +292,38 @@ export default function TeamManager() {
         <div className="mb-6">
           <h1 className="text-4xl font-display text-white mb-2">Team Manager</h1>
           <p className="text-gray-400 font-body">Select one player for each position</p>
+        </div>
+
+        {/* Formation Selection */}
+        <div className="bg-black/50 border-2 border-gray-700 rounded-xl p-6 mb-6">
+          <h2 className="text-xl font-display text-white mb-4 flex items-center gap-2">
+            <span className="material-symbols-outlined">strategy</span>
+            SELECT FORMATION
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {Object.entries(FORMATIONS).map(([key, formationData]) => (
+              <button
+                key={key}
+                onClick={() => setFormation(key)}
+                className={`p-4 rounded-lg border-2 transition-all ${
+                  formation === key
+                    ? 'bg-electric-blue border-electric-blue text-black'
+                    : 'bg-black/30 border-gray-600 text-gray-300 hover:border-gray-400'
+                }`}
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="material-symbols-outlined text-2xl">
+                    {formationData.icon}
+                  </span>
+                  <div className="text-left">
+                    <div className="font-display text-lg">{key}</div>
+                    <div className="font-body text-sm opacity-80">{formationData.name}</div>
+                  </div>
+                </div>
+                <p className="text-sm font-body opacity-80">{formationData.description}</p>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Team Overview */}

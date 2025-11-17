@@ -23,6 +23,20 @@ const POSITION_ABILITIES = {
   'FWD': { name: 'Strike', description: 'Double damage this round', icon: 'rocket_launch' }
 }
 
+// Weather conditions
+const WEATHER_CONDITIONS = {
+  'rainy': { name: 'Rainy', description: 'Defenders +15%', icon: '🌧️', bonus: { DEF: 15 } },
+  'sunny': { name: 'Sunny', description: 'Forwards +15%', icon: '☀️', bonus: { FWD: 15 } },
+  'neutral': { name: 'Clear', description: 'No bonuses', icon: '☁️', bonus: {} }
+}
+
+// Formation bonuses
+const FORMATION_BONUSES = {
+  '1-1-2': { attackBonus: 10, defenseBonus: -10 },
+  '1-2-1': { attackBonus: 0, defenseBonus: 0 },
+  '2-1-1': { attackBonus: -10, defenseBonus: 10 }
+}
+
 export default function Battle() {
   const [battleMode, setBattleMode] = useState(null) // null, 'casual', 'ranked', 'wager'
   const [wagerAmount, setWagerAmount] = useState(100)
@@ -46,6 +60,13 @@ export default function Battle() {
   // Animation states
   const [animating, setAnimating] = useState(false)
   const [roundWinner, setRoundWinner] = useState(null)
+  const [damageNumbers, setDamageNumbers] = useState({ my: 0, opp: 0 })
+  const [criticalHit, setCriticalHit] = useState(false)
+  const [miracleSave, setMiracleSave] = useState(false)
+
+  // Weather & Strategic
+  const [weather, setWeather] = useState('neutral')
+  const [dailyBonusAvailable, setDailyBonusAvailable] = useState(false)
 
   const { user, profile, refreshProfile } = useAuth()
   const { checkBattleAchievements } = useAchievements()
@@ -211,7 +232,24 @@ export default function Battle() {
     }
   }
 
-  const startBattle = () => {
+  const startBattle = async () => {
+    // Randomly select weather
+    const weatherTypes = ['rainy', 'sunny', 'neutral']
+    const randomWeather = weatherTypes[Math.floor(Math.random() * weatherTypes.length)]
+    setWeather(randomWeather)
+
+    // Check daily bonus eligibility
+    try {
+      const { data, error } = await supabase
+        .rpc('check_daily_bonus', { user_id_param: user.id })
+
+      if (!error && data) {
+        setDailyBonusAvailable(data.eligible)
+      }
+    } catch (error) {
+      console.error('Error checking daily bonus:', error)
+    }
+
     setBattleState('battling')
     setCurrentRound(0)
     setRoundResults([])
@@ -220,6 +258,8 @@ export default function Battle() {
     setMyAbilitiesUsed({ GK: false, DEF: false, MID: false, FWD: false })
     setOpponentAbilitiesUsed({ GK: false, DEF: false, MID: false, FWD: false })
     setAssistBonus(false)
+    setCriticalHit(false)
+    setMiracleSave(false)
 
     // Start first round
     setTimeout(() => setShowAbilityChoice(true), 500)
@@ -231,6 +271,23 @@ export default function Battle() {
     // Apply assist bonus from previous round
     if (!isOpponent && assistBonus && position !== 'GK') {
       power *= 1.2
+    }
+
+    // Apply formation bonuses
+    const formation = isOpponent ? opponent.formation : myTeam.formation
+    if (formation && FORMATION_BONUSES[formation]) {
+      const bonus = FORMATION_BONUSES[formation]
+      if (position === 'FWD') {
+        power += (power * bonus.attackBonus / 100)
+      } else if (position === 'DEF') {
+        power += (power * bonus.defenseBonus / 100)
+      }
+    }
+
+    // Apply weather bonuses
+    const weatherBonus = WEATHER_CONDITIONS[weather]?.bonus || {}
+    if (weatherBonus[position]) {
+      power += (power * weatherBonus[position] / 100)
     }
 
     return Math.round(power)
@@ -312,8 +369,36 @@ export default function Battle() {
       oppPower = Math.round(oppPower * 1.1)
     }
 
+    // Critical Hit (10% chance) - +50% damage
+    const playerCrit = Math.random() < 0.10
+    const oppCrit = Math.random() < 0.10
+
+    if (playerCrit) {
+      myPower = Math.round(myPower * 1.5)
+      abilityEffects.push('💥 CRITICAL HIT! +50% damage!')
+      setCriticalHit(true)
+      setTimeout(() => setCriticalHit(false), 2000)
+    }
+
+    if (oppCrit) {
+      oppPower = Math.round(oppPower * 1.5)
+      abilityEffects.push('⚠️ Opponent CRITICAL HIT!')
+    }
+
+    // Store damage numbers for animation
+    setDamageNumbers({ my: myPower, opp: oppPower })
+
     // Determine winner
-    const roundWon = myPower > oppPower ? 'player' : myPower < oppPower ? 'opponent' : 'draw'
+    let roundWon = myPower > oppPower ? 'player' : myPower < oppPower ? 'opponent' : 'draw'
+
+    // Miracle Save (5% chance) - Negate a loss
+    if (roundWon === 'opponent' && Math.random() < 0.05) {
+      roundWon = 'draw'
+      abilityEffects.push('✨ MIRACLE SAVE! Loss negated!')
+      setMiracleSave(true)
+      setTimeout(() => setMiracleSave(false), 2000)
+    }
+
     setRoundWinner(roundWon)
 
     const newMyScore = roundWon === 'player' ? myScore + 1 : myScore
@@ -431,6 +516,87 @@ export default function Battle() {
       }
 
       await refreshProfile()
+
+      // Daily Bonus (First Win of the Day)
+      if (playerWon && dailyBonusAvailable) {
+        try {
+          const { data: bonusResult } = await supabase
+            .rpc('claim_daily_bonus', {
+              user_id_param: user.id,
+              battle_id_param: battle.id
+            })
+
+          if (bonusResult?.success) {
+            console.log('Daily bonus claimed:', bonusResult.bonus_amount)
+          }
+        } catch (error) {
+          console.error('Error claiming daily bonus:', error)
+        }
+      }
+
+      // Random Card Drop for Big Wins (3-0 or 4-0)
+      if (playerWon && finalMyScore >= 3 && finalOppScore === 0) {
+        // 30% chance of card drop on dominant victory
+        if (Math.random() < 0.30) {
+          try {
+            // Get a random common card
+            const { data: randomCards } = await supabase
+              .from('cards')
+              .select('*')
+              .eq('rarity', 'Common')
+              .limit(10)
+
+            if (randomCards && randomCards.length > 0) {
+              const droppedCard = randomCards[Math.floor(Math.random() * randomCards.length)]
+
+              // Add to user's collection
+              const { data: existingCard } = await supabase
+                .from('user_cards')
+                .select('*')
+                .eq('user_id', user.id)
+                .eq('card_id', droppedCard.id)
+                .single()
+
+              if (existingCard) {
+                // Increase quantity
+                await supabase
+                  .from('user_cards')
+                  .update({ quantity: existingCard.quantity + 1 })
+                  .eq('id', existingCard.id)
+              } else {
+                // Add new card
+                await supabase
+                  .from('user_cards')
+                  .insert({
+                    user_id: user.id,
+                    card_id: droppedCard.id,
+                    quantity: 1
+                  })
+              }
+
+              // Record the drop
+              await supabase
+                .from('battle_rewards')
+                .insert({
+                  battle_id: battle.id,
+                  user_id: user.id,
+                  reward_type: 'card_drop',
+                  card_id: droppedCard.id
+                })
+
+              // Update profile
+              await supabase
+                .from('profiles')
+                .update({ total_card_drops: (profile?.total_card_drops || 0) + 1 })
+                .eq('id', user.id)
+
+              console.log('Card dropped:', droppedCard.name)
+            }
+          } catch (error) {
+            console.error('Error dropping card:', error)
+          }
+        }
+      }
 
       // Check achievements
       if (playerWon) {
@@ -663,6 +829,25 @@ export default function Battle() {
         {/* Battle Screen - Round by Round */}
         {battleState === 'battling' && (
           <div>
+            {/* Weather & Formation Display */}
+            <div className="bg-black/50 border-2 border-accent-gold rounded-xl p-4 mb-4">
+              <div className="flex items-center justify-between">
+                <div className="text-center flex-1">
+                  <p className="text-gray-400 font-pixel text-xs mb-1">FORMATION</p>
+                  <p className="text-electric-blue font-display text-lg">{myTeam.formation || '1-2-1'}</p>
+                </div>
+                <div className="text-center px-6">
+                  <p className="text-gray-400 font-pixel text-xs mb-1">WEATHER</p>
+                  <p className="text-accent-gold font-display text-2xl">{WEATHER_CONDITIONS[weather]?.icon}</p>
+                  <p className="text-white font-pixel text-[10px]">{WEATHER_CONDITIONS[weather]?.name}</p>
+                </div>
+                <div className="text-center flex-1">
+                  <p className="text-gray-400 font-pixel text-xs mb-1">FORMATION</p>
+                  <p className="text-red-500 font-display text-lg">{opponent.formation || '1-2-1'}</p>
+                </div>
+              </div>
+            </div>
+
             {/* Score Display */}
             <div className="bg-black/50 border-2 border-white rounded-xl p-4 mb-6">
               <div className="flex items-center justify-between">
@@ -765,29 +950,83 @@ export default function Battle() {
             {/* Round Result Animation */}
             {animating && roundWinner && (
               <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center">
-                <div className="text-center animate-bounce">
-                  {roundWinner === 'player' && (
-                    <>
-                      <span className="material-symbols-outlined text-9xl text-vibrant-green mb-4">check_circle</span>
-                      <p className="text-vibrant-green font-display text-6xl">YOU WIN!</p>
-                    </>
-                  )}
-                  {roundWinner === 'opponent' && (
-                    <>
-                      <span className="material-symbols-outlined text-9xl text-red-500 mb-4">cancel</span>
-                      <p className="text-red-500 font-display text-6xl">OPPONENT WINS!</p>
-                    </>
-                  )}
-                  {roundWinner === 'draw' && (
-                    <>
-                      <span className="material-symbols-outlined text-9xl text-accent-gold mb-4">remove</span>
-                      <p className="text-accent-gold font-display text-6xl">DRAW!</p>
-                    </>
-                  )}
-                  {roundResults[currentRound]?.effects.map((effect, i) => (
-                    <p key={i} className="text-white font-body text-xl mt-4">{effect}</p>
-                  ))}
+                <div className="text-center">
+                  {/* Card Clash Animation */}
+                  <div className="flex items-center justify-center gap-8 mb-8">
+                    <div className="relative">
+                      <div className="w-40 transform -rotate-12 animate-pulse">
+                        <Card card={myTeam.cards[POSITIONS[currentRound]]} />
+                      </div>
+                      {/* Damage Number */}
+                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 animate-bounce">
+                        <p className="text-electric-blue font-display text-4xl drop-shadow-[0_0_10px_rgba(0,150,255,0.8)]">
+                          {damageNumbers.my}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="text-white text-6xl animate-ping">⚔️</div>
+
+                    <div className="relative">
+                      <div className="w-40 transform rotate-12 animate-pulse">
+                        <Card card={opponent.cards[POSITIONS[currentRound]]} />
+                      </div>
+                      {/* Damage Number */}
+                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 animate-bounce">
+                        <p className="text-red-500 font-display text-4xl drop-shadow-[0_0_10px_rgba(255,0,0,0.8)]">
+                          {damageNumbers.opp}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Winner Announcement */}
+                  <div className="animate-bounce">
+                    {roundWinner === 'player' && (
+                      <>
+                        <span className="material-symbols-outlined text-9xl text-vibrant-green mb-4">check_circle</span>
+                        <p className="text-vibrant-green font-display text-6xl">YOU WIN!</p>
+                      </>
+                    )}
+                    {roundWinner === 'opponent' && (
+                      <>
+                        <span className="material-symbols-outlined text-9xl text-red-500 mb-4">cancel</span>
+                        <p className="text-red-500 font-display text-6xl">OPPONENT WINS!</p>
+                      </>
+                    )}
+                    {roundWinner === 'draw' && (
+                      <>
+                        <span className="material-symbols-outlined text-9xl text-accent-gold mb-4">remove</span>
+                        <p className="text-accent-gold font-display text-6xl">DRAW!</p>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Effects */}
+                  <div className="mt-6">
+                    {roundResults[currentRound]?.effects.map((effect, i) => (
+                      <p key={i} className="text-white font-body text-xl mt-2 animate-pulse">{effect}</p>
+                    ))}
+                  </div>
                 </div>
+              </div>
+            )}
+
+            {/* Critical Hit Indicator */}
+            {criticalHit && (
+              <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-bounce">
+                <p className="text-6xl font-display text-accent-gold drop-shadow-[0_0_20px_rgba(255,215,0,1)]">
+                  💥 CRITICAL HIT! 💥
+                </p>
+              </div>
+            )}
+
+            {/* Miracle Save Indicator */}
+            {miracleSave && (
+              <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-bounce">
+                <p className="text-6xl font-display text-vibrant-green drop-shadow-[0_0_20px_rgba(0,255,100,1)]">
+                  ✨ MIRACLE SAVE! ✨
+                </p>
               </div>
             )}
           </div>
@@ -830,6 +1069,24 @@ export default function Battle() {
                     <span className="text-vibrant-green font-display">
                       +{(battleMode === 'ranked' ? 150 : 100) * (Math.min((profile?.win_streak || 0) + 1, 5) - 1)} coins
                     </span>
+                  </div>
+                )}
+                {myScore > opponentScore && dailyBonusAvailable && (
+                  <div className="flex justify-between bg-accent-gold/20 -mx-2 px-2 py-2 rounded">
+                    <span className="text-accent-gold font-body flex items-center gap-2">
+                      <span className="material-symbols-outlined text-sm">celebration</span>
+                      First Win of the Day Bonus:
+                    </span>
+                    <span className="text-accent-gold font-display">+500 coins</span>
+                  </div>
+                )}
+                {myScore > opponentScore && myScore >= 3 && opponentScore === 0 && (
+                  <div className="flex justify-between bg-accent-purple/20 -mx-2 px-2 py-2 rounded">
+                    <span className="text-accent-purple font-body flex items-center gap-2">
+                      <span className="material-symbols-outlined text-sm">card_giftcard</span>
+                      Dominant Victory Bonus:
+                    </span>
+                    <span className="text-accent-purple font-display">Card Drop Chance!</span>
                   </div>
                 )}
                 {battleMode === 'wager' && (
