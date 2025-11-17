@@ -109,18 +109,18 @@ END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
 -- Step 11: Create function to get weather bonuses
-CREATE OR REPLACE FUNCTION get_weather_bonuses(weather TEXT, position TEXT)
+CREATE OR REPLACE FUNCTION get_weather_bonuses(weather TEXT, player_position TEXT)
 RETURNS INTEGER AS $$
 BEGIN
   CASE weather
     WHEN 'rainy' THEN
       -- Defenders get +15% in rain
-      IF position = 'DEF' THEN
+      IF player_position = 'DEF' THEN
         RETURN 15;
       END IF;
     WHEN 'sunny' THEN
       -- Attackers (FWD) get +15% in sun
-      IF position = 'FWD' THEN
+      IF player_position = 'FWD' THEN
         RETURN 15;
       END IF;
     ELSE
