@@ -67,6 +67,14 @@ export default function Battle() {
     fetchMyTeam()
   }, [user])
 
+  // Execute round when currentRound changes during battle
+  useEffect(() => {
+    if (battleState === 'battling' && !animating && currentRound >= 0 && currentRound <= 3) {
+      const timer = setTimeout(() => executeRound(), 300)
+      return () => clearTimeout(timer)
+    }
+  }, [battleState, currentRound, animating])
+
   const fetchMyTeam = async () => {
     if (!user) return
 
@@ -291,16 +299,15 @@ export default function Battle() {
       console.error('Error checking daily bonus:', error)
     }
 
-    setBattleState('battling')
-    setCurrentRound(0)
     setRoundResults([])
     setMyScore(0)
     setOpponentScore(0)
     setCriticalHit(false)
     setMiracleSave(false)
+    setCurrentRound(0)
 
-    // Start first round
-    setTimeout(() => executeRound(), 500)
+    // Setting battleState to 'battling' will trigger the useEffect to execute the first round
+    setBattleState('battling')
   }
 
   const calculateCardPower = (card, position, isOpponent = false) => {
@@ -406,7 +413,7 @@ export default function Battle() {
       effects: abilityEffects
     }
 
-    setRoundResults([...roundResults, result])
+    setRoundResults(prev => [...prev, result])
 
     // Animate result
     setAnimating(true)
@@ -415,9 +422,10 @@ export default function Battle() {
       setRoundWinner(null)
 
       if (currentRound < 3) {
-        setCurrentRound(currentRound + 1)
-        setTimeout(() => executeRound(), 300)
+        // Increment round, which will trigger useEffect to execute next round
+        setCurrentRound(prev => prev + 1)
       } else {
+        // All rounds complete
         finishBattle(newMyScore, newOppScore)
       }
     }, 2500)
