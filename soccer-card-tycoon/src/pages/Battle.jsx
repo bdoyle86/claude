@@ -15,14 +15,6 @@ const POSITION_NAMES = {
   'FWD': 'Forward'
 }
 
-// Position-based abilities
-const POSITION_ABILITIES = {
-  'GK': { name: 'Save', description: 'Block one round completely', icon: 'sports_soccer' },
-  'DEF': { name: 'Shield', description: '50% damage reduction', icon: 'shield' },
-  'MID': { name: 'Assist', description: 'Boost next card by 20%', icon: 'double_arrow' },
-  'FWD': { name: 'Strike', description: 'Double damage this round', icon: 'rocket_launch' }
-}
-
 // Weather conditions
 const WEATHER_CONDITIONS = {
   'rainy': { name: 'Rainy', description: 'Defenders +15%', icon: '🌧️', bonus: { DEF: 15 } },
@@ -50,12 +42,6 @@ export default function Battle() {
   const [roundResults, setRoundResults] = useState([])
   const [myScore, setMyScore] = useState(0)
   const [opponentScore, setOpponentScore] = useState(0)
-
-  // Abilities
-  const [myAbilitiesUsed, setMyAbilitiesUsed] = useState({ GK: false, DEF: false, MID: false, FWD: false })
-  const [opponentAbilitiesUsed, setOpponentAbilitiesUsed] = useState({ GK: false, DEF: false, MID: false, FWD: false })
-  const [showAbilityChoice, setShowAbilityChoice] = useState(false)
-  const [assistBonus, setAssistBonus] = useState(false)
 
   // Animation states
   const [animating, setAnimating] = useState(false)
@@ -310,23 +296,15 @@ export default function Battle() {
     setRoundResults([])
     setMyScore(0)
     setOpponentScore(0)
-    setMyAbilitiesUsed({ GK: false, DEF: false, MID: false, FWD: false })
-    setOpponentAbilitiesUsed({ GK: false, DEF: false, MID: false, FWD: false })
-    setAssistBonus(false)
     setCriticalHit(false)
     setMiracleSave(false)
 
     // Start first round
-    setTimeout(() => setShowAbilityChoice(true), 500)
+    setTimeout(() => executeRound(), 500)
   }
 
-  const calculateCardPower = (card, position, abilitiesUsed, isOpponent = false) => {
+  const calculateCardPower = (card, position, isOpponent = false) => {
     let power = (card.overall_rating || 75) + (card.bonus_stats || 0)
-
-    // Apply assist bonus from previous round
-    if (!isOpponent && assistBonus && position !== 'GK') {
-      power *= 1.2
-    }
 
     // Apply formation bonuses
     const formation = isOpponent ? opponent.formation : myTeam.formation
@@ -348,59 +326,15 @@ export default function Battle() {
     return Math.round(power)
   }
 
-  const useAbility = async (useIt) => {
-    setShowAbilityChoice(false)
-
+  const executeRound = async () => {
     const position = POSITIONS[currentRound]
     const myCard = myTeam.cards[position]
     const oppCard = opponent.cards[position]
 
-    let myPower = calculateCardPower(myCard, position, myAbilitiesUsed, false)
-    let oppPower = calculateCardPower(oppCard, position, opponentAbilitiesUsed, true)
+    let myPower = calculateCardPower(myCard, position, false)
+    let oppPower = calculateCardPower(oppCard, position, true)
 
-    // AI decides if opponent uses ability (30% chance if available)
-    const oppUsesAbility = !opponentAbilitiesUsed[position] && Math.random() < 0.3
-
-    let myAbilityUsed = null
-    let oppAbilityUsed = null
     let abilityEffects = []
-
-    // Apply player ability
-    if (useIt && !myAbilitiesUsed[position]) {
-      myAbilityUsed = POSITION_ABILITIES[position].name
-      setMyAbilitiesUsed({ ...myAbilitiesUsed, [position]: true })
-
-      if (position === 'GK') {
-        oppPower = 0
-        abilityEffects.push(`${POSITION_NAMES[position]} used SAVE! Blocked opponent's attack!`)
-      } else if (position === 'DEF') {
-        oppPower = Math.round(oppPower * 0.5)
-        abilityEffects.push(`${POSITION_NAMES[position]} used SHIELD! Reduced opponent power by 50%!`)
-      } else if (position === 'MID') {
-        setAssistBonus(true)
-        abilityEffects.push(`${POSITION_NAMES[position]} used ASSIST! Next card gets +20% power!`)
-      } else if (position === 'FWD') {
-        myPower *= 2
-        abilityEffects.push(`${POSITION_NAMES[position]} used STRIKE! Doubled your power!`)
-      }
-    }
-
-    // Apply opponent ability
-    if (oppUsesAbility) {
-      oppAbilityUsed = POSITION_ABILITIES[position].name
-      setOpponentAbilitiesUsed({ ...opponentAbilitiesUsed, [position]: true })
-
-      if (position === 'GK') {
-        myPower = 0
-        abilityEffects.push(`Opponent's ${POSITION_NAMES[position]} used SAVE!`)
-      } else if (position === 'DEF') {
-        myPower = Math.round(myPower * 0.5)
-        abilityEffects.push(`Opponent's ${POSITION_NAMES[position]} used SHIELD!`)
-      } else if (position === 'FWD') {
-        oppPower *= 2
-        abilityEffects.push(`Opponent's ${POSITION_NAMES[position]} used STRIKE!`)
-      }
-    }
 
     // Apply rarity bonuses
     if (myCard.rarity === 'Epic' && currentRound === 3) {
@@ -469,17 +403,10 @@ export default function Battle() {
       myPower,
       oppPower,
       winner: roundWon,
-      myAbilityUsed,
-      oppAbilityUsed,
       effects: abilityEffects
     }
 
     setRoundResults([...roundResults, result])
-
-    // Clear assist bonus if not MID
-    if (position !== 'MID') {
-      setAssistBonus(false)
-    }
 
     // Animate result
     setAnimating(true)
@@ -489,7 +416,7 @@ export default function Battle() {
 
       if (currentRound < 3) {
         setCurrentRound(currentRound + 1)
-        setTimeout(() => setShowAbilityChoice(true), 300)
+        setTimeout(() => executeRound(), 300)
       } else {
         finishBattle(newMyScore, newOppScore)
       }
@@ -951,16 +878,8 @@ export default function Battle() {
                     {myTeam.cards[POSITIONS[currentRound]].name}
                   </p>
                   <p className="text-accent-gold font-display text-2xl text-center">
-                    {calculateCardPower(myTeam.cards[POSITIONS[currentRound]], POSITIONS[currentRound], myAbilitiesUsed, false)}
+                    {calculateCardPower(myTeam.cards[POSITIONS[currentRound]], POSITIONS[currentRound], false)}
                   </p>
-                  <div className="mt-4">
-                    <p className="text-gray-400 font-pixel text-xs mb-2">ABILITY:</p>
-                    <div className="bg-black/50 border border-electric-blue rounded p-2">
-                      <p className="text-electric-blue font-pixel text-xs">
-                        {POSITION_ABILITIES[POSITIONS[currentRound]].name}: {POSITION_ABILITIES[POSITIONS[currentRound]].description}
-                      </p>
-                    </div>
-                  </div>
                 </div>
 
                 {/* Opponent Card */}
@@ -972,49 +891,11 @@ export default function Battle() {
                     {opponent.cards[POSITIONS[currentRound]].name}
                   </p>
                   <p className="text-accent-gold font-display text-2xl text-center">
-                    {calculateCardPower(opponent.cards[POSITIONS[currentRound]], POSITIONS[currentRound], opponentAbilitiesUsed, true)}
+                    {calculateCardPower(opponent.cards[POSITIONS[currentRound]], POSITIONS[currentRound], true)}
                   </p>
-                  <div className="mt-4">
-                    <p className="text-gray-400 font-pixel text-xs mb-2">OPPONENT STATUS:</p>
-                    <div className="bg-black/50 border border-red-500 rounded p-2">
-                      <p className="text-gray-400 font-pixel text-xs text-center">???</p>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
-
-            {/* Ability Choice */}
-            {showAbilityChoice && !animating && (
-              <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                <div className="bg-background-dark border-4 border-electric-blue rounded-xl p-8 max-w-md w-full">
-                  <h3 className="text-2xl font-display text-white text-center mb-4">Use Ability?</h3>
-                  <div className="bg-electric-blue/20 border-2 border-electric-blue rounded-lg p-4 mb-6">
-                    <p className="text-electric-blue font-display text-xl mb-2">
-                      {POSITION_ABILITIES[POSITIONS[currentRound]].name}
-                    </p>
-                    <p className="text-gray-300 font-body text-sm">
-                      {POSITION_ABILITIES[POSITIONS[currentRound]].description}
-                    </p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <button
-                      onClick={() => useAbility(false)}
-                      className="h-14 rounded-lg bg-gray-600 text-white font-display uppercase border-2 border-black shadow-pixel-hard hover:scale-105 transition-transform"
-                    >
-                      SKIP
-                    </button>
-                    <button
-                      onClick={() => useAbility(true)}
-                      disabled={myAbilitiesUsed[POSITIONS[currentRound]]}
-                      className="h-14 rounded-lg bg-vibrant-green text-black font-display uppercase border-2 border-black shadow-pixel-hard hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                    >
-                      USE IT!
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* Round Result Animation */}
             {animating && roundWinner && (
@@ -1199,9 +1080,6 @@ export default function Battle() {
                       <div className="flex-1">
                         <p className="text-white font-body">{round.myCard}</p>
                         <p className="text-electric-blue font-pixel text-xs">Power: {round.myPower}</p>
-                        {round.myAbilityUsed && (
-                          <p className="text-vibrant-green font-pixel text-[10px]">Used: {round.myAbilityUsed}</p>
-                        )}
                       </div>
                       <div className="text-center px-4">
                         <p className="text-white font-display text-xl">VS</p>
@@ -1209,9 +1087,6 @@ export default function Battle() {
                       <div className="flex-1 text-right">
                         <p className="text-white font-body">{round.oppCard}</p>
                         <p className="text-red-500 font-pixel text-xs">Power: {round.oppPower}</p>
-                        {round.oppAbilityUsed && (
-                          <p className="text-accent-purple font-pixel text-[10px]">Used: {round.oppAbilityUsed}</p>
-                        )}
                       </div>
                     </div>
                   </div>
