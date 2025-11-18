@@ -68,6 +68,11 @@ export default function Battle() {
   const [weather, setWeather] = useState('neutral')
   const [dailyBonusAvailable, setDailyBonusAvailable] = useState(false)
 
+  // Team editing
+  const [showEditTeam, setShowEditTeam] = useState(false)
+  const [availableCards, setAvailableCards] = useState([])
+  const [editingPosition, setEditingPosition] = useState(null)
+
   const { user, profile, refreshProfile } = useAuth()
   const { checkBattleAchievements } = useAchievements()
   const navigate = useNavigate()
@@ -139,6 +144,56 @@ export default function Battle() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const fetchAvailableCards = async (position) => {
+    try {
+      const { data: userCards, error } = await supabase
+        .from('user_cards')
+        .select('*, cards(*)')
+        .eq('user_id', user.id)
+
+      if (error) throw error
+
+      // Filter cards by position and add evolution bonuses
+      const positionCards = userCards
+        ?.filter(uc => uc.cards.position === position)
+        .map(uc => ({
+          ...uc.cards,
+          user_card_id: uc.id,
+          quantity: uc.quantity,
+          evolution_level: uc.evolution_level || 0,
+          bonus_stats: uc.bonus_stats || 0
+        })) || []
+
+      setAvailableCards(positionCards)
+    } catch (error) {
+      console.error('Error fetching available cards:', error)
+    }
+  }
+
+  const handleEditPosition = (position) => {
+    setEditingPosition(position)
+    setShowEditTeam(true)
+    fetchAvailableCards(position)
+  }
+
+  const handleSwapCard = (card) => {
+    if (!editingPosition) return
+
+    // Update myTeam with the new card (temporary, doesn't save to DB)
+    setMyTeam({
+      ...myTeam,
+      cards: {
+        ...myTeam.cards,
+        [editingPosition]: card
+      }
+    })
+
+    // Close modal
+    setShowEditTeam(false)
+    setEditingPosition(null)
+    setAvailableCards([])
   }
 
   const selectBattleMode = (mode) => {
@@ -770,18 +825,32 @@ export default function Battle() {
             <div className="grid md:grid-cols-2 gap-6 mb-6">
               {/* Player Team */}
               <div className="bg-electric-blue/10 border-2 border-electric-blue rounded-xl p-6">
-                <h2 className="text-2xl font-display text-electric-blue mb-4 flex items-center gap-2">
-                  <span className="material-symbols-outlined">person</span>
-                  {profile?.username || 'You'}
+                <h2 className="text-2xl font-display text-electric-blue mb-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined">person</span>
+                    {profile?.username || 'You'}
+                  </div>
+                  <button
+                    onClick={() => setShowEditTeam(true)}
+                    className="text-sm bg-electric-blue/20 hover:bg-electric-blue/40 px-3 py-1 rounded border border-electric-blue transition-colors"
+                  >
+                    Edit Team
+                  </button>
                 </h2>
                 {battleMode === 'ranked' && (
                   <p className="text-gray-400 font-body text-sm mb-4">ELO: {profile?.elo_rating || 1000}</p>
                 )}
                 <div className="grid grid-cols-4 gap-2">
                   {POSITIONS.map(pos => (
-                    <div key={pos} className="text-center">
-                      <div className="mb-1">
+                    <div key={pos} className="text-center relative group">
+                      <div className="mb-1 relative">
                         <Card card={myTeam.cards[pos]} />
+                        <button
+                          onClick={() => handleEditPosition(pos)}
+                          className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded"
+                        >
+                          <span className="material-symbols-outlined text-white text-2xl">swap_horiz</span>
+                        </button>
                       </div>
                       <p className="text-white font-pixel text-[10px]">{pos}</p>
                       <p className="text-accent-gold font-pixel text-[8px]">
@@ -1163,6 +1232,81 @@ export default function Battle() {
               >
                 BACK TO HOME
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Team Modal */}
+        {showEditTeam && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-background-dark border-4 border-electric-blue rounded-xl p-6 max-w-4xl w-full max-h-[80vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-3xl font-display text-white">
+                  {editingPosition ? `Swap ${POSITION_NAMES[editingPosition]}` : 'Edit Team'}
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowEditTeam(false)
+                    setEditingPosition(null)
+                    setAvailableCards([])
+                  }}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <span className="material-symbols-outlined text-4xl">close</span>
+                </button>
+              </div>
+
+              {editingPosition ? (
+                <>
+                  <div className="bg-electric-blue/10 border-2 border-electric-blue rounded-lg p-4 mb-6">
+                    <p className="text-white font-display mb-2">Current: {myTeam.cards[editingPosition]?.player_name}</p>
+                    <p className="text-gray-400 font-body text-sm">Select a card to swap with:</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {availableCards.map(card => (
+                      <div
+                        key={card.id}
+                        onClick={() => handleSwapCard(card)}
+                        className="cursor-pointer hover:scale-105 transition-transform"
+                      >
+                        <Card card={card} />
+                        <p className="text-white font-body text-sm text-center mt-2">{card.player_name}</p>
+                        <p className="text-accent-gold font-pixel text-xs text-center">
+                          {card.overall_rating + (card.bonus_stats || 0)}
+                        </p>
+                        {card.evolution_level > 0 && (
+                          <p className="text-vibrant-green font-pixel text-xs text-center">
+                            ★ Lv {card.evolution_level}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {availableCards.length === 0 && (
+                    <div className="text-center py-8">
+                      <p className="text-gray-400 font-body">No other {POSITION_NAMES[editingPosition]} cards available</p>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {POSITIONS.map(pos => (
+                    <div
+                      key={pos}
+                      onClick={() => handleEditPosition(pos)}
+                      className="bg-black/30 border-2 border-gray-600 hover:border-electric-blue rounded-lg p-4 cursor-pointer transition-all hover:scale-105"
+                    >
+                      <Card card={myTeam.cards[pos]} />
+                      <p className="text-white font-display text-center mt-2">{POSITION_NAMES[pos]}</p>
+                      <p className="text-accent-gold font-pixel text-xs text-center">
+                        {myTeam.cards[pos].overall_rating + (myTeam.cards[pos].bonus_stats || 0)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
