@@ -59,6 +59,11 @@ export default function Battle() {
   const [availableCards, setAvailableCards] = useState([])
   const [editingPosition, setEditingPosition] = useState(null)
 
+  // Battle speed control
+  const [battleSpeed, setBattleSpeed] = useState('auto') // 'auto' or 'manual'
+  const [showRevealButton, setShowRevealButton] = useState(false)
+  const [cardsRevealed, setCardsRevealed] = useState(false)
+
   const { user, profile, refreshProfile } = useAuth()
   const { checkBattleAchievements } = useAchievements()
   const navigate = useNavigate()
@@ -70,10 +75,17 @@ export default function Battle() {
   // Execute round when currentRound changes during battle
   useEffect(() => {
     if (battleState === 'battling' && !animating && currentRound >= 0 && currentRound <= 3) {
-      const timer = setTimeout(() => executeRound(), 300)
-      return () => clearTimeout(timer)
+      if (battleSpeed === 'manual') {
+        // In manual mode, show reveal button
+        setShowRevealButton(true)
+        setCardsRevealed(false)
+      } else {
+        // In auto mode, auto-execute after delay
+        const timer = setTimeout(() => executeRound(), 800)
+        return () => clearTimeout(timer)
+      }
     }
-  }, [battleState, currentRound, animating])
+  }, [battleState, currentRound, animating, battleSpeed])
 
   const fetchMyTeam = async () => {
     if (!user) return
@@ -305,9 +317,29 @@ export default function Battle() {
     setCriticalHit(false)
     setMiracleSave(false)
     setCurrentRound(0)
+    setShowRevealButton(false)
+    setCardsRevealed(false)
 
     // Setting battleState to 'battling' will trigger the useEffect to execute the first round
     setBattleState('battling')
+  }
+
+  const handleRevealCards = () => {
+    setCardsRevealed(true)
+    setShowRevealButton(false)
+    // Auto-execute after cards are revealed
+    setTimeout(() => executeRound(), 500)
+  }
+
+  const handleNextRound = () => {
+    setAnimating(false)
+    setRoundWinner(null)
+
+    if (currentRound < 3) {
+      setCurrentRound(prev => prev + 1)
+    } else {
+      finishBattle(myScore, opponentScore)
+    }
   }
 
   const calculateCardPower = (card, position, isOpponent = false) => {
@@ -417,18 +449,23 @@ export default function Battle() {
 
     // Animate result
     setAnimating(true)
-    setTimeout(() => {
-      setAnimating(false)
-      setRoundWinner(null)
 
-      if (currentRound < 3) {
-        // Increment round, which will trigger useEffect to execute next round
-        setCurrentRound(prev => prev + 1)
-      } else {
-        // All rounds complete
-        finishBattle(newMyScore, newOppScore)
-      }
-    }, 2500)
+    if (battleSpeed === 'manual') {
+      // In manual mode, wait for user to click "Next Round"
+      // Don't auto-advance
+    } else {
+      // In auto mode, advance after delay (slower than before)
+      setTimeout(() => {
+        setAnimating(false)
+        setRoundWinner(null)
+
+        if (currentRound < 3) {
+          setCurrentRound(prev => prev + 1)
+        } else {
+          finishBattle(newMyScore, newOppScore)
+        }
+      }, 3500)
+    }
   }
 
   const finishBattle = async (finalMyScore, finalOppScore) => {
@@ -640,6 +677,12 @@ export default function Battle() {
             <div className="mb-6 text-center">
               <h1 className="text-5xl font-display text-white mb-2">BATTLE ARENA</h1>
               <p className="text-gray-400 font-body">Choose your battle mode</p>
+              <button
+                onClick={() => setShowEditTeam(true)}
+                className="mt-4 px-6 py-2 bg-electric-blue/20 hover:bg-electric-blue/40 border-2 border-electric-blue rounded-lg text-white font-display transition-colors"
+              >
+                📝 Edit Team Before Battle
+              </button>
             </div>
 
             {/* Win Streak Display */}
@@ -760,17 +803,9 @@ export default function Battle() {
             <div className="grid md:grid-cols-2 gap-6 mb-6">
               {/* Player Team */}
               <div className="bg-electric-blue/10 border-2 border-electric-blue rounded-xl p-6">
-                <h2 className="text-2xl font-display text-electric-blue mb-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined">person</span>
-                    {profile?.username || 'You'}
-                  </div>
-                  <button
-                    onClick={() => setShowEditTeam(true)}
-                    className="text-sm bg-electric-blue/20 hover:bg-electric-blue/40 px-3 py-1 rounded border border-electric-blue transition-colors"
-                  >
-                    Edit Team
-                  </button>
+                <h2 className="text-2xl font-display text-electric-blue mb-4 flex items-center gap-2">
+                  <span className="material-symbols-outlined">person</span>
+                  {profile?.username || 'You'}
                 </h2>
                 {battleMode === 'ranked' && (
                   <p className="text-gray-400 font-body text-sm mb-4">ELO: {profile?.elo_rating || 1000}</p>
@@ -808,15 +843,47 @@ export default function Battle() {
                 <div className="grid grid-cols-4 gap-2">
                   {POSITIONS.map(pos => (
                     <div key={pos} className="text-center">
-                      <div className="mb-1">
-                        <Card card={opponent.cards[pos]} />
+                      <div className="mb-1 bg-gradient-to-br from-gray-700 to-gray-900 border-2 border-red-500 rounded-lg aspect-[2/3] flex items-center justify-center">
+                        <span className="material-symbols-outlined text-5xl text-gray-500">help</span>
                       </div>
                       <p className="text-white font-pixel text-[10px]">{pos}</p>
-                      <p className="text-accent-gold font-pixel text-[8px]">
-                        {opponent.cards[pos].overall_rating + (opponent.cards[pos].bonus_stats || 0)}
-                      </p>
+                      <p className="text-gray-500 font-pixel text-[8px]">???</p>
                     </div>
                   ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Battle Speed Toggle */}
+            <div className="bg-black/30 border-2 border-gray-600 rounded-xl p-4 mb-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-white font-display text-lg">Battle Speed</p>
+                  <p className="text-gray-400 font-body text-sm">
+                    {battleSpeed === 'auto' ? 'Auto-play with cinematic timing' : 'Manual control with reveal and next buttons'}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setBattleSpeed('auto')}
+                    className={`px-4 py-2 rounded border-2 font-display text-sm transition-all ${
+                      battleSpeed === 'auto'
+                        ? 'bg-electric-blue text-black border-electric-blue'
+                        : 'bg-transparent text-gray-400 border-gray-600 hover:border-electric-blue'
+                    }`}
+                  >
+                    AUTO
+                  </button>
+                  <button
+                    onClick={() => setBattleSpeed('manual')}
+                    className={`px-4 py-2 rounded border-2 font-display text-sm transition-all ${
+                      battleSpeed === 'manual'
+                        ? 'bg-accent-purple text-white border-accent-purple'
+                        : 'bg-transparent text-gray-400 border-gray-600 hover:border-accent-purple'
+                    }`}
+                  >
+                    MANUAL
+                  </button>
                 </div>
               </div>
             </div>
@@ -876,31 +943,59 @@ export default function Battle() {
                 {POSITION_NAMES[POSITIONS[currentRound]]} Battle
               </h2>
 
+              {/* Reveal Button for Manual Mode */}
+              {battleSpeed === 'manual' && showRevealButton && (
+                <div className="flex justify-center mb-6">
+                  <button
+                    onClick={handleRevealCards}
+                    className="h-16 px-8 rounded-lg bg-accent-purple text-white font-display text-2xl uppercase border-2 border-black shadow-pixel-hard hover:scale-105 transition-transform animate-pulse"
+                  >
+                    🃏 REVEAL CARDS
+                  </button>
+                </div>
+              )}
+
               <div className="grid md:grid-cols-2 gap-6">
                 {/* Player Card */}
                 <div className="bg-electric-blue/20 border-2 border-electric-blue rounded-xl p-6">
-                  <div className="w-48 mx-auto mb-4">
-                    <Card card={myTeam.cards[POSITIONS[currentRound]]} />
-                  </div>
-                  <p className="text-white font-display text-xl text-center mb-2">
-                    {myTeam.cards[POSITIONS[currentRound]].name}
-                  </p>
-                  <p className="text-accent-gold font-display text-2xl text-center">
-                    {calculateCardPower(myTeam.cards[POSITIONS[currentRound]], POSITIONS[currentRound], false)}
-                  </p>
+                  {battleSpeed === 'manual' && !cardsRevealed && !animating ? (
+                    <div className="w-48 mx-auto mb-4 bg-gradient-to-br from-electric-blue/30 to-electric-blue/10 border-2 border-electric-blue rounded-lg aspect-[2/3] flex items-center justify-center">
+                      <span className="material-symbols-outlined text-6xl text-electric-blue">help</span>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="w-48 mx-auto mb-4">
+                        <Card card={myTeam.cards[POSITIONS[currentRound]]} />
+                      </div>
+                      <p className="text-white font-display text-xl text-center mb-2">
+                        {myTeam.cards[POSITIONS[currentRound]].name}
+                      </p>
+                      <p className="text-accent-gold font-display text-2xl text-center">
+                        {calculateCardPower(myTeam.cards[POSITIONS[currentRound]], POSITIONS[currentRound], false)}
+                      </p>
+                    </>
+                  )}
                 </div>
 
                 {/* Opponent Card */}
                 <div className="bg-red-500/20 border-2 border-red-500 rounded-xl p-6">
-                  <div className="w-48 mx-auto mb-4">
-                    <Card card={opponent.cards[POSITIONS[currentRound]]} />
-                  </div>
-                  <p className="text-white font-display text-xl text-center mb-2">
-                    {opponent.cards[POSITIONS[currentRound]].name}
-                  </p>
-                  <p className="text-accent-gold font-display text-2xl text-center">
-                    {calculateCardPower(opponent.cards[POSITIONS[currentRound]], POSITIONS[currentRound], true)}
-                  </p>
+                  {battleSpeed === 'manual' && !cardsRevealed && !animating ? (
+                    <div className="w-48 mx-auto mb-4 bg-gradient-to-br from-red-500/30 to-red-500/10 border-2 border-red-500 rounded-lg aspect-[2/3] flex items-center justify-center">
+                      <span className="material-symbols-outlined text-6xl text-red-500">help</span>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="w-48 mx-auto mb-4">
+                        <Card card={opponent.cards[POSITIONS[currentRound]]} />
+                      </div>
+                      <p className="text-white font-display text-xl text-center mb-2">
+                        {opponent.cards[POSITIONS[currentRound]].name}
+                      </p>
+                      <p className="text-accent-gold font-display text-2xl text-center">
+                        {calculateCardPower(opponent.cards[POSITIONS[currentRound]], POSITIONS[currentRound], true)}
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -966,6 +1061,18 @@ export default function Battle() {
                       <p key={i} className="text-white font-body text-xl mt-2 animate-pulse">{effect}</p>
                     ))}
                   </div>
+
+                  {/* Next Round Button for Manual Mode */}
+                  {battleSpeed === 'manual' && (
+                    <div className="mt-8">
+                      <button
+                        onClick={handleNextRound}
+                        className="h-14 px-8 rounded-lg bg-vibrant-green text-black font-display text-xl uppercase border-2 border-black shadow-pixel-hard hover:scale-105 transition-transform"
+                      >
+                        {currentRound < 3 ? '➡️ NEXT ROUND' : '🏆 SEE RESULTS'}
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -1174,21 +1281,58 @@ export default function Battle() {
                   )}
                 </>
               ) : (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {POSITIONS.map(pos => (
-                    <div
-                      key={pos}
-                      onClick={() => handleEditPosition(pos)}
-                      className="bg-black/30 border-2 border-gray-600 hover:border-electric-blue rounded-lg p-4 cursor-pointer transition-all hover:scale-105"
-                    >
-                      <Card card={myTeam.cards[pos]} />
-                      <p className="text-white font-display text-center mt-2">{POSITION_NAMES[pos]}</p>
-                      <p className="text-accent-gold font-pixel text-xs text-center">
-                        {myTeam.cards[pos].overall_rating + (myTeam.cards[pos].bonus_stats || 0)}
-                      </p>
+                <>
+                  {/* Weather & Formation Info */}
+                  <div className="bg-accent-gold/10 border-2 border-accent-gold rounded-lg p-4 mb-6">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-accent-gold font-display text-sm mb-2">WEATHER: {WEATHER_CONDITIONS[weather]?.icon} {WEATHER_CONDITIONS[weather]?.name}</p>
+                        <p className="text-gray-300 font-body text-xs">{WEATHER_CONDITIONS[weather]?.description}</p>
+                      </div>
+                      <div>
+                        <p className="text-electric-blue font-display text-sm mb-2">FORMATION: {myTeam.formation || '1-2-1'}</p>
+                        <p className="text-gray-300 font-body text-xs">
+                          {myTeam.formation === '1-1-2' && 'FWD +10%, DEF -10%'}
+                          {myTeam.formation === '1-2-1' && 'Balanced - No bonuses'}
+                          {myTeam.formation === '2-1-1' && 'DEF +10%, FWD -10%'}
+                        </p>
+                      </div>
                     </div>
-                  ))}
-                </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {POSITIONS.map(pos => {
+                      const card = myTeam.cards[pos]
+                      const basePower = card.overall_rating + (card.bonus_stats || 0)
+                      const totalPower = calculateCardPower(card, pos, false)
+                      const bonusAmount = totalPower - basePower
+
+                      return (
+                        <div
+                          key={pos}
+                          onClick={() => handleEditPosition(pos)}
+                          className="bg-black/30 border-2 border-gray-600 hover:border-electric-blue rounded-lg p-4 cursor-pointer transition-all hover:scale-105"
+                        >
+                          <Card card={card} />
+                          <p className="text-white font-display text-center mt-2">{POSITION_NAMES[pos]}</p>
+                          <div className="text-center mt-1">
+                            <p className="text-accent-gold font-pixel text-xs">
+                              Base: {basePower}
+                            </p>
+                            {bonusAmount !== 0 && (
+                              <p className={`font-pixel text-xs ${bonusAmount > 0 ? 'text-vibrant-green' : 'text-red-500'}`}>
+                                {bonusAmount > 0 ? '+' : ''}{bonusAmount} bonus
+                              </p>
+                            )}
+                            <p className="text-white font-display text-sm mt-1">
+                              Total: {totalPower}
+                            </p>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </>
               )}
             </div>
           </div>
