@@ -1,5 +1,14 @@
-export default function CardDetailModal({ card, onClose, quantity = 1 }) {
+export default function CardDetailModal({ card, onClose, quantity = 1, onSell }) {
   if (!card) return null
+
+  const getSellPrice = (card) => {
+    const basePrice = {
+      'Epic': 250,
+      'Rare': 150,
+      'Common': 50
+    }
+    return basePrice[card.rarity] || 50
+  }
 
   const getRarityColor = (rarity) => {
     switch (rarity) {
@@ -33,8 +42,8 @@ export default function CardDetailModal({ card, onClose, quantity = 1 }) {
   ]
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className="relative flex min-h-screen w-full flex-col overflow-hidden bg-brand-blue border-4 border-black shadow-pixel-hard max-w-md" onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#0096C7' }}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto" onClick={onClose}>
+      <div className="relative flex w-full flex-col overflow-hidden bg-brand-blue border-4 border-black shadow-pixel-hard max-w-md my-auto" onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#0096C7', maxHeight: '90vh' }}>
 
         {/* Header */}
         <div className="flex items-center p-4 pb-2 justify-between shrink-0 relative z-10">
@@ -49,8 +58,8 @@ export default function CardDetailModal({ card, onClose, quantity = 1 }) {
         </div>
 
         {/* Card Display */}
-        <div className="flex flex-col grow px-4">
-          <div className="relative flex w-full grow items-center justify-center py-3">
+        <div className="flex flex-col px-4 overflow-y-auto flex-1">
+          <div className="relative flex w-full items-center justify-center py-3">
             <div className="absolute inset-x-0 top-1/2 h-1/2 -translate-y-1/2 bg-secondary/20 blur-3xl rounded-full"></div>
             <div className="w-full max-w-xs aspect-[3/4] flex-shrink-0" style={{ transform: 'perspective(1000px) rotateY(0deg) scale(1.05)' }}>
               <div
@@ -119,6 +128,23 @@ export default function CardDetailModal({ card, onClose, quantity = 1 }) {
               </div>
             </div>
           </div>
+
+          {/* Action Buttons */}
+          {onSell && quantity > 0 && (
+            <div className="p-4 pb-6">
+              <button
+                onClick={() => onSell(card)}
+                className="w-full h-14 rounded-lg bg-red-500 hover:bg-red-600 text-white font-display text-lg uppercase border-2 border-black shadow-pixel-hard active:translate-x-1 active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-outlined text-2xl">sell</span>
+                SELL FOR {getSellPrice(card)} COINS
+                {quantity > 1 && ` (Have ${quantity})`}
+              </button>
+              <p className="text-white/70 text-center mt-2 text-xs font-body">
+                Selling will remove 1 copy from your collection
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

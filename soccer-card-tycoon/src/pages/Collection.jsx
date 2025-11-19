@@ -50,14 +50,18 @@ export default function Collection() {
       // Extract the card data and track quantities
       const cards = data.map(uc => uc.cards).filter(Boolean)
       const quantities = {}
+      const userCardIds = {} // Store user_card IDs for deletion
       data.forEach(uc => {
         if (uc.cards) {
           quantities[uc.cards.id] = uc.quantity || 1
+          userCardIds[uc.cards.id] = uc.id
         }
       })
 
       setUserCards(cards)
       setCardQuantities(quantities)
+      // Store user_card IDs in state for selling
+      window.userCardIds = userCardIds
 
       // Check achievements
       try {
@@ -85,6 +89,88 @@ export default function Collection() {
       console.error('Error fetching user cards:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleSellCard = async (card) => {
+    const quantity = cardQuantities[card.id] || 0
+
+    if (quantity <= 0) {
+      alert('You don\'t have this card to sell!')
+      return
+    }
+
+    const sellPrice = {
+      'Epic': 250,
+      'Rare': 150,
+      'Common': 50
+    }[card.rarity] || 50
+
+    const confirmSell = window.confirm(
+      `Sell ${card.player_name} for ${sellPrice} coins?\n\nYou have ${quantity} of this card.`
+    )
+
+    if (!confirmSell) return
+
+    try {
+      const userCardId = window.userCardIds?.[card.id]
+
+      if (!userCardId) {
+        throw new Error('Card not found in your collection')
+      }
+
+      if (quantity === 1) {
+        // Delete the user_card entirely
+        const { error: deleteError } = await supabase
+          .from('user_cards')
+          .delete()
+          .eq('id', userCardId)
+
+        if (deleteError) throw deleteError
+      } else {
+        // Decrease quantity by 1
+        const { error: updateError } = await supabase
+          .from('user_cards')
+          .update({ quantity: quantity - 1 })
+          .eq('id', userCardId)
+
+        if (updateError) throw updateError
+      }
+
+      // Add coins to user's profile
+      const { error: coinsError } = await supabase
+        .from('profiles')
+        .update({
+          coins: (profile?.coins || 0) + sellPrice
+        })
+        .eq('id', user.id)
+
+      if (coinsError) throw coinsError
+
+      // Record transaction
+      await supabase
+        .from('transactions')
+        .insert({
+          user_id: user.id,
+          type: 'card_sell',
+          amount: -sellPrice, // Negative because it's income
+          description: `Sold ${card.player_name}`,
+          balance_after: (profile?.coins || 0) + sellPrice
+        })
+
+      alert(`Sold ${card.player_name} for ${sellPrice} coins!`)
+
+      // Close modal and refresh
+      setSelectedCard(null)
+      await fetchUserCards()
+
+      // Refresh profile to update coin count in header
+      if (window.location) {
+        window.location.reload()
+      }
+    } catch (error) {
+      console.error('Error selling card:', error)
+      alert('Failed to sell card. Please try again.')
     }
   }
 
@@ -326,6 +412,7 @@ export default function Collection() {
           card={selectedCard}
           quantity={cardQuantities[selectedCard.id]}
           onClose={() => setSelectedCard(null)}
+          onSell={handleSellCard}
         />
       )}
     </div>

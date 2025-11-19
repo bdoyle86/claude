@@ -19,6 +19,7 @@ import Profile from './pages/Profile'
 import TradeOffers from './pages/TradeOffers'
 import CreateTrade from './pages/CreateTrade'
 import CardEvolution from './pages/CardEvolution'
+import Tournament from './pages/Tournament'
 
 function App() {
   return (
@@ -144,6 +145,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <CardEvolution />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/tournaments"
+            element={
+              <ProtectedRoute>
+                <Tournament />
               </ProtectedRoute>
             }
           />

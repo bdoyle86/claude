@@ -9,9 +9,15 @@ A mobile-first web-based collectible card game where players can acquire, open, 
 - **Currency System**: Earn and spend coins to purchase packs and cards
 - **Pack Store**: Buy standard packs with randomized cards
 - **Pack Opening**: Animated card reveal experience with rarity-based distribution
-- **My Collection**: View, filter, and sort your card collection
+- **My Collection**: View, filter, and sort your card collection with card selling
 - **Card Market**: Purchase specific cards directly from the store
-- **Mobile-First Design**: Optimized for mobile devices with a retro gaming aesthetic
+- **Card Selling**: Sell unwanted cards back for coins
+- **Battle Arena**: Face other players in strategic card battles
+- **Tournaments**: Compete in progressive AI tournaments for trophies and rewards
+- **Trophy Case**: Display your tournament victories
+- **Team Management**: Build and customize your 4-card team
+- **Card Evolution**: Upgrade cards using duplicates
+- **Responsive Design**: Optimized for both mobile and desktop with grid layouts
 
 ### Rarity System
 - **Common (70%)**: Base player cards

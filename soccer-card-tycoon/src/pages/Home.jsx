@@ -16,69 +16,99 @@ export default function Home() {
       <main className="flex-grow pb-24">
         <Header />
 
-        <div className="p-4 flex flex-col gap-8">
-          {/* Daily Reward */}
-          <DailyReward />
-          {/* Pack Store Card */}
-          <Link to="/packs" className="relative flex flex-col justify-end min-h-[200px] rounded-xl overflow-hidden group bg-accent-blue border-4 border-black shadow-[4px_4px_0px_#00C2FF]">
-            <div className="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-luminosity" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800")' }}></div>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-            <div className="relative z-10 flex flex-col items-center justify-center text-center p-4 h-full">
-              <h2 className="font-display text-3xl text-white text-outline-black" style={{ textShadow: '3px 3px 0 #00C2FF' }}>PACK STORE</h2>
-              <p className="text-white/90 text-sm font-bold uppercase tracking-widest">Get New Players!</p>
-            </div>
-          </Link>
+        <div className="p-4 max-w-7xl mx-auto">
+          {/* Daily Reward - Full Width */}
+          <div className="mb-6">
+            <DailyReward />
+          </div>
 
-          {/* My Collection Card */}
-          <Link to="/collection" className="relative flex flex-col justify-end min-h-[200px] rounded-xl overflow-hidden group bg-accent-pink border-4 border-black shadow-[4px_4px_0px_#FF35A5]">
-            <div className="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-luminosity" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800")' }}></div>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-            <div className="relative z-10 flex flex-col items-center justify-center text-center p-4 h-full">
-              <h2 className="font-display text-3xl text-white text-outline-black" style={{ textShadow: '3px 3px 0 #FF35A5' }}>MY COLLECTION</h2>
-              <p className="text-white/90 text-sm font-bold uppercase tracking-widest">View Your Squad</p>
-            </div>
-          </Link>
+          {/* Main Menu Grid - Responsive */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+            {/* Pack Store Card */}
+            <Link to="/packs" className="relative flex flex-col justify-end min-h-[180px] lg:min-h-[200px] rounded-xl overflow-hidden group bg-accent-blue border-4 border-black shadow-[4px_4px_0px_#00C2FF] hover:scale-105 transition-transform">
+              <div className="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-luminosity" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800")' }}></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+              <div className="relative z-10 flex flex-col items-center justify-center text-center p-4 h-full">
+                <span className="material-symbols-outlined text-6xl text-white mb-2">view_in_ar</span>
+                <h2 className="font-display text-2xl md:text-3xl text-white text-outline-black" style={{ textShadow: '3px 3px 0 #00C2FF' }}>PACK STORE</h2>
+                <p className="text-white/90 text-xs md:text-sm font-bold uppercase tracking-widest">Get New Players!</p>
+              </div>
+            </Link>
 
-          {/* Card Market */}
-          <Link to="/market" className="relative flex flex-col justify-end min-h-[200px] rounded-xl overflow-hidden group bg-accent-gold border-4 border-black shadow-[4px_4px_0px_#F3BE38]">
-            <div className="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-luminosity" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=800")' }}></div>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-            <div className="relative z-10 flex flex-col items-center justify-center text-center p-4 h-full">
-              <h2 className="font-display text-3xl text-white text-outline-black" style={{ textShadow: '3px 3px 0 #F3BE38' }}>CARD MARKET</h2>
-              <p className="text-white/90 text-sm font-bold uppercase tracking-widest">Buy Specific Cards</p>
-            </div>
-          </Link>
+            {/* My Collection Card */}
+            <Link to="/collection" className="relative flex flex-col justify-end min-h-[180px] lg:min-h-[200px] rounded-xl overflow-hidden group bg-accent-pink border-4 border-black shadow-[4px_4px_0px_#FF35A5] hover:scale-105 transition-transform">
+              <div className="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-luminosity" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800")' }}></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+              <div className="relative z-10 flex flex-col items-center justify-center text-center p-4 h-full">
+                <span className="material-symbols-outlined text-6xl text-white mb-2">collections</span>
+                <h2 className="font-display text-2xl md:text-3xl text-white text-outline-black" style={{ textShadow: '3px 3px 0 #FF35A5' }}>MY COLLECTION</h2>
+                <p className="text-white/90 text-xs md:text-sm font-bold uppercase tracking-widest">View Your Squad</p>
+              </div>
+            </Link>
 
-          {/* Battle Arena */}
-          <Link to="/battle" className="relative flex flex-col justify-end min-h-[200px] rounded-xl overflow-hidden group bg-hot-pink border-4 border-black shadow-[4px_4px_0px_#FF35A5]">
-            <div className="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-luminosity" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800")' }}></div>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-            <div className="relative z-10 flex flex-col items-center justify-center text-center p-4 h-full">
-              <div className="text-5xl mb-2">⚔️</div>
-              <h2 className="font-display text-3xl text-white text-outline-black" style={{ textShadow: '3px 3px 0 #FF35A5' }}>BATTLE ARENA</h2>
-              <p className="text-white/90 text-sm font-bold uppercase tracking-widest">Head to Head Combat!</p>
-            </div>
-          </Link>
+            {/* Card Market */}
+            <Link to="/market" className="relative flex flex-col justify-end min-h-[180px] lg:min-h-[200px] rounded-xl overflow-hidden group bg-accent-gold border-4 border-black shadow-[4px_4px_0px_#F3BE38] hover:scale-105 transition-transform">
+              <div className="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-luminosity" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=800")' }}></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+              <div className="relative z-10 flex flex-col items-center justify-center text-center p-4 h-full">
+                <span className="material-symbols-outlined text-6xl text-white mb-2">storefront</span>
+                <h2 className="font-display text-2xl md:text-3xl text-white text-outline-black" style={{ textShadow: '3px 3px 0 #F3BE38' }}>CARD MARKET</h2>
+                <p className="text-white/90 text-xs md:text-sm font-bold uppercase tracking-widest">Buy Specific Cards</p>
+              </div>
+            </Link>
 
-          {/* Leaderboard */}
-          <Link to="/leaderboard" className="relative flex flex-col justify-end min-h-[200px] rounded-xl overflow-hidden group bg-vibrant-green border-4 border-black shadow-[4px_4px_0px_#39FF14]">
-            <div className="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-luminosity" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800")' }}></div>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-            <div className="relative z-10 flex flex-col items-center justify-center text-center p-4 h-full">
-              <div className="text-5xl mb-2">🏆</div>
-              <h2 className="font-display text-3xl text-white text-outline-black" style={{ textShadow: '3px 3px 0 #39FF14' }}>LEADERBOARD</h2>
-              <p className="text-white/90 text-sm font-bold uppercase tracking-widest">Top Players!</p>
-            </div>
-          </Link>
+            {/* Battle Arena */}
+            <Link to="/battle" className="relative flex flex-col justify-end min-h-[180px] lg:min-h-[200px] rounded-xl overflow-hidden group bg-hot-pink border-4 border-black shadow-[4px_4px_0px_#FF35A5] hover:scale-105 transition-transform">
+              <div className="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-luminosity" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800")' }}></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+              <div className="relative z-10 flex flex-col items-center justify-center text-center p-4 h-full">
+                <div className="text-5xl md:text-6xl mb-2">⚔️</div>
+                <h2 className="font-display text-2xl md:text-3xl text-white text-outline-black" style={{ textShadow: '3px 3px 0 #FF35A5' }}>BATTLE ARENA</h2>
+                <p className="text-white/90 text-xs md:text-sm font-bold uppercase tracking-widest">PvP Combat!</p>
+              </div>
+            </Link>
 
-          {/* Settings/Logout */}
-          <div className="flex gap-4 mt-4">
+            {/* Tournaments */}
+            <Link to="/tournaments" className="relative flex flex-col justify-end min-h-[180px] lg:min-h-[200px] rounded-xl overflow-hidden group bg-accent-purple border-4 border-black shadow-[4px_4px_0px_#8B5CF6] hover:scale-105 transition-transform">
+              <div className="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-luminosity" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800")' }}></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+              <div className="relative z-10 flex flex-col items-center justify-center text-center p-4 h-full">
+                <div className="text-5xl md:text-6xl mb-2">🏆</div>
+                <h2 className="font-display text-2xl md:text-3xl text-white text-outline-black" style={{ textShadow: '3px 3px 0 #8B5CF6' }}>TOURNAMENTS</h2>
+                <p className="text-white/90 text-xs md:text-sm font-bold uppercase tracking-widest">Win Trophies!</p>
+              </div>
+            </Link>
+
+            {/* Leaderboard */}
+            <Link to="/leaderboard" className="relative flex flex-col justify-end min-h-[180px] lg:min-h-[200px] rounded-xl overflow-hidden group bg-vibrant-green border-4 border-black shadow-[4px_4px_0px_#39FF14] hover:scale-105 transition-transform">
+              <div className="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-luminosity" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800")' }}></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+              <div className="relative z-10 flex flex-col items-center justify-center text-center p-4 h-full">
+                <span className="material-symbols-outlined text-6xl text-white mb-2">leaderboard</span>
+                <h2 className="font-display text-2xl md:text-3xl text-white text-outline-black" style={{ textShadow: '3px 3px 0 #39FF14' }}>LEADERBOARD</h2>
+                <p className="text-white/90 text-xs md:text-sm font-bold uppercase tracking-widest">Top Players!</p>
+              </div>
+            </Link>
+          </div>
+
+          {/* Secondary Actions - Grid on Desktop */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Link to="/team-manager" className="flex items-center justify-center gap-2 py-4 bg-electric-blue border-4 border-black shadow-pixel-hard rounded-lg hover:scale-105 active:translate-x-1 active:translate-y-1 active:shadow-none transition-all">
+              <span className="material-symbols-outlined text-white text-2xl">groups</span>
+              <span className="font-display text-sm text-white">TEAM MANAGER</span>
+            </Link>
+
+            <Link to="/evolution" className="flex items-center justify-center gap-2 py-4 bg-accent-gold border-4 border-black shadow-pixel-hard rounded-lg hover:scale-105 active:translate-x-1 active:translate-y-1 active:shadow-none transition-all">
+              <span className="material-symbols-outlined text-white text-2xl">auto_awesome</span>
+              <span className="font-display text-sm text-white">EVOLUTION</span>
+            </Link>
+
             <button
               onClick={handleLogout}
-              className="flex-1 flex items-center justify-center gap-2 py-4 bg-red-500 border-4 border-black shadow-pixel-hard rounded-lg active:translate-x-1 active:translate-y-1 active:shadow-none transition-all"
+              className="flex items-center justify-center gap-2 py-4 bg-red-500 border-4 border-black shadow-pixel-hard rounded-lg hover:scale-105 active:translate-x-1 active:translate-y-1 active:shadow-none transition-all"
             >
-              <span className="material-symbols-outlined text-white">logout</span>
-              <span className="font-pixel text-xs text-white">LOGOUT</span>
+              <span className="material-symbols-outlined text-white text-2xl">logout</span>
+              <span className="font-display text-sm text-white">LOGOUT</span>
             </button>
           </div>
         </div>
